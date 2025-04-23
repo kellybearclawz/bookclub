@@ -20,7 +20,7 @@
   </main>
 
   <script>
-    const sheetURL = 'https://docs.google.com/spreadsheets/d/1Xl4GOhgbIxi3GafQXOLHbKCYXuBaPpUUQPR6Y7EbBkw/pubhtml';
+    const sheetID = '1Xl4GOhgbIxi3GafQXOLHbKCYXuBaPpUUQPR6Y7EbBkw';
 
     function fetchBookCovers(book) {
       const query = `${book.Title} ${book.Author}`;
@@ -50,7 +50,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       Tabletop.init({
-        key: sheetURL,
+        key: sheetID,
         callback: renderBooks,
         simpleSheet: true
       });
