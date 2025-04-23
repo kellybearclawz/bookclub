@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Genre Stats</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tabletop@1.6.0/tabletop.min.js"></script>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="books.html">Books</a>
+    <a href="stats.html">Stats</a>
+    <a href="about.html">About</a>
+  </nav>
+  <main>
+    <h1>Genre Breakdown</h1>
+    <canvas id="genreChart" width="400" height="400"></canvas>
+  </main>
+
+  <script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/1Xl4GOhgbIxi3GafQXOLHbKCYXuBaPpUUQPR6Y7EbBkw/pubhtml';
+
+    function renderChart(data) {
+      const genreCounts = {};
+      data.forEach(book => {
+        const genre = book.Genre.trim();
+        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+      });
+
+      const ctx = document.getElementById('genreChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: Object.keys(genreCounts),
+          datasets: [{
+            label: 'Genres',
+            data: Object.values(genreCounts),
+            backgroundColor: ['#d8b4fe','#fcd34d','#6ee7b7','#93c5fd','#fca5a5','#fdba74']
+          }]
+        }
+      });
+    }
+
+    Tabletop.init({
+      key: sheetURL,
+      callback: renderChart,
+      simpleSheet: true
+    });
+  </script>
+</body>
+</html>
