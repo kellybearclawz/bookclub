@@ -7,22 +7,30 @@
   <script src="https://cdn.jsdelivr.net/npm/tabletop@1.6.0/tabletop.min.js"></script>
 </head>
 <body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="books.html">Books</a>
+    <a href="stats.html">Stats</a>
+    <a href="about.html">About</a>
+  </nav>
+
   <h1>Books We've Read</h1>
-  <div id="bookshelf"></div>
+  <div id="bookshelf" style="padding: 1rem;"></div>
 
   <script>
     function renderBooks(data) {
       const shelf = document.getElementById('bookshelf');
       data.forEach(book => {
         const div = document.createElement('div');
-        div.innerHTML = `<p><strong>${book.Title}</strong> by ${book.Author}</p>`;
+        div.style.marginBottom = '1rem';
+        div.innerHTML = `<p><strong>${book.Title}</strong><br>by ${book.Author}<br>Genre: ${book.Genre}<br>Meeting: ${book['Meeting Date']}</p>`;
         shelf.appendChild(div);
       });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       Tabletop.init({
-        key: '1Xl4GOhgbIxi3GafQXOLHbKCYXuBaPpUUQPR6Y7EbBkw', // Your sheet ID
+        key: '1Xl4GOhgbIxi3GafQXOLHbKCYXuBaPpUUQPR6Y7EbBkw',
         callback: renderBooks,
         simpleSheet: true
       });
