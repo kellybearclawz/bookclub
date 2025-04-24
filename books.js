@@ -28,7 +28,7 @@ async function renderBooks(data) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  Papa.parse("Book Club - Books Read.csv", {
+  Papa.parse("Book Club - Books Read_ISBN.csv", {
     download: true,
     header: true,
     complete: function(results) {
