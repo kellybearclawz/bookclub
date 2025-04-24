@@ -9,7 +9,7 @@ function renderBooks(data) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  Papa.parse("books.csv", {
+  Papa.parse("Book Club - Books Read.csv", {
     download: true,
     header: true,
     complete: function(results) {
