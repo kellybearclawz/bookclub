@@ -9,9 +9,11 @@ function renderBooks(data) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  Tabletop.init({
-    key: '1Xl4GOhgbIxi3GafQXOLHbKCYXuBaPpUUQPR6Y7EbBkw',
-    callback: renderBooks,
-    simpleSheet: true
+  Papa.parse("books.csv", {
+    download: true,
+    header: true,
+    complete: function(results) {
+      renderBooks(results.data);
+    }
   });
 });
