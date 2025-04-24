@@ -1,1 +1,16 @@
 body { font-family: sans-serif; background-color: #fdf6f0; padding: 20px; }
+
+#bookshelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+#bookshelf div {
+  background-color: #fff8f0;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-family: 'Georgia', serif;
+}
