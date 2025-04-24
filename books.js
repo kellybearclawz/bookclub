@@ -9,7 +9,7 @@ async function fetchCover(isbn) {
 async function renderBooks(data) {
   const shelf = document.getElementById('bookshelf');
   for (const book of data) {
-    const coverUrl = await fetchCover(book.Title, book.Author);
+    const coverUrl = await fetchCover(book.ISBN); // Pass the ISBN here
     const div = document.createElement('div');
     div.style.display = 'flex';
     div.style.alignItems = 'flex-start';
