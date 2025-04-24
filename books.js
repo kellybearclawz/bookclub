@@ -26,3 +26,13 @@ async function renderBooks(data) {
     shelf.appendChild(div);
   }
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  Papa.parse("Book Club - Books Read.csv", {
+    download: true,
+    header: true,
+    complete: function(results) {
+      renderBooks(results.data);
+    }
+  });
+});
