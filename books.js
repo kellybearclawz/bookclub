@@ -38,6 +38,9 @@ async function renderBooks(data) {
     section.innerHTML = `<h2>${year}</h2>`;
     
     for (const book of booksByYear[year]) {
+      const bookContainer = document.createElement('div');
+      bookContainer.className = 'book-container'; // add this class
+      section.appendChild(bookContainer);
       const coverUrl = await fetchCover(book.ISBN);
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book-card';
@@ -49,6 +52,7 @@ async function renderBooks(data) {
           Meeting: ${book['Meeting Date']}</p>
         </div>
       `;
+      bookContainer.appendChild(bookDiv); // append to container, not section
       section.appendChild(bookDiv);
     }
 
