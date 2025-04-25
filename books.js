@@ -57,6 +57,13 @@ async function renderBooks(data) {
   }
 
   section.appendChild(bookContainer);
+
+  // Add "Back to Top" link under each section
+  const backToTop = document.createElement('div');
+  backToTop.className = 'back-to-top';
+  backToTop.innerHTML = `<a href="#top">↑ Back to Top</a>`;
+  section.appendChild(backToTop);
+
   shelf.appendChild(section);
 }
 
