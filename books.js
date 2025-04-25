@@ -37,7 +37,8 @@ async function renderBooks(data) {
   section.id = `year-${year}`;
   section.innerHTML = `<h2>${year}</h2>`;
 
-  const bookContainer = document.createElement('div'); // create once per year
+  // Create one container per year
+  const bookContainer = document.createElement('div');
   bookContainer.className = 'book-container';
 
   for (const book of booksByYear[year]) {
@@ -52,12 +53,13 @@ async function renderBooks(data) {
         Meeting: ${book['Meeting Date']}</p>
       </div>
     `;
-    bookContainer.appendChild(bookDiv); // add each book to the container
+    bookContainer.appendChild(bookDiv);
   }
 
-  section.appendChild(bookContainer); // add the whole container once
-  shelf.appendChild(section);         // add the whole section to the shelf
+  section.appendChild(bookContainer);
+  shelf.appendChild(section);
 }
+
 
   // Add back the "jump to top" link
   const topLink = document.createElement('div');
