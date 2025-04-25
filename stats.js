@@ -1,38 +1,46 @@
 // stats.js
-function groupByGenre(data) {
-  const genreCount = {};
-  data.forEach(book => {
-    const genre = book.Genre?.trim();
-    if (genre) {
-      genreCount[genre] = (genreCount[genre] || 0) + 1;
-    }
-  });
-  return genreCount;
-}
 
-function renderChart(genreData) {
-  const ctx = document.getElementById('genreChart');
-  new Chart(ctx, {
-    type: 'doughnut',
+function generateChart(data, label, title, elementId) {
+  const ctx = document.getElementById(elementId).getContext('2d');
+  const counts = {};
+  data.forEach(book => {
+    const value = book[label] || 'Unknown';
+    counts[value] = (counts[value] || 0) + 1;
+  });
+
+  const chart = new Chart(ctx, {
+    type: 'bar',
     data: {
-      labels: Object.keys(genreData),
+      labels: Object.keys(counts),
       datasets: [{
-        label: 'Books by Genre',
-        data: Object.values(genreData),
-        backgroundColor: [
-          '#f9c6c9', '#cdeac0', '#f7d794', '#d3c0f9', '#b8e0f2', '#f6a6b2'
-        ]
+        label: `${label} Distribution`,
+        data: Object.values(counts),
+        backgroundColor: '#d8a48f',
+        borderRadius: 5
       }]
     },
     options: {
-      responsive: true,
       plugins: {
-        legend: {
-          position: 'right'
-        },
         title: {
           display: true,
-          text: 'Distribution of Book Genres'
+          text: title,
+          font: {
+            size: 20
+          }
+        }
+      },
+      responsive: true,
+      scales: {
+        x: {
+          ticks: {
+            color: '#5c4033'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#5c4033'
+          }
         }
       }
     }
@@ -40,12 +48,13 @@ function renderChart(genreData) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  Papa.parse('Book Club - Books Read_ISBN.csv', {
+  Papa.parse("Book Club - Books Read_ISBN.csv", {
     download: true,
     header: true,
     complete: function(results) {
-      const genreData = groupByGenre(results.data);
-      renderChart(genreData);
+      const data = results.data;
+      generateChart(data, 'Genre', 'Books by Genre', 'genreChart');
+      generateChart(data, 'Sub-Genre', 'Books by Sub-Genre', 'subgenreChart');
     }
   });
 });
