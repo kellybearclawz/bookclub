@@ -122,26 +122,24 @@ img {
 }
 
 .year-links {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem;
-  background-color: #fff8f0; /* match page background */
-  font-weight: bold;
-  color: #5e4b3c;
-  border-bottom: 2px solid #e0cfc2;
-  flex-wrap: wrap;
+  margin: 1rem auto;
+  text-align: center;
+  font-size: 1.1rem;
+  padding: 0.5rem 0;
 }
 
 .year-links a {
-  text-decoration: none;
   color: #5e4b3c;
+  text-decoration: none;
   font-weight: bold;
+  margin: 0 0.5rem;
+  transition: color 0.3s ease;
 }
 
 .year-links a:hover {
-  text-decoration: underline;
+  color: #a87d5d;
 }
+
 
 .back-to-top {
   text-align: center;
@@ -177,4 +175,23 @@ img {
 
 #top-link.show {
   display: block;
+}
+
+section h2 {
+  font-size: 2rem;
+  margin-top: 2rem;
+  color: #5e4b3c;
+  background-color: #f4e4d4;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border-bottom: 2px solid #e0cfc2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Responsive for mobile */
+@media (max-width: 600px) {
+  section h2 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
 }
