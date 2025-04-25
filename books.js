@@ -32,32 +32,32 @@ async function renderBooks(data) {
   shelf.appendChild(yearLinksDiv);
 
   // Render each year's section
-  for (const year of years) {
-    const section = document.createElement('section');
-    section.id = `year-${year}`;
-    section.innerHTML = `<h2>${year}</h2>`;
-    
-    for (const book of booksByYear[year]) {
-      const bookContainer = document.createElement('div');
-      bookContainer.className = 'book-container'; // add this class
-      section.appendChild(bookContainer);
-      const coverUrl = await fetchCover(book.ISBN);
-      const bookDiv = document.createElement('div');
-      bookDiv.className = 'book-card';
-      bookDiv.innerHTML = `
-        <img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; border-radius: 6px;" />
-        <div>
-          <p><strong>${book.Title}</strong><br>
-          by ${book.Author}<br>
-          Meeting: ${book['Meeting Date']}</p>
-        </div>
-      `;
-      bookContainer.appendChild(bookDiv); // append to container, not section
-      section.appendChild(bookDiv);
-    }
+ for (const year of years) {
+  const section = document.createElement('section');
+  section.id = `year-${year}`;
+  section.innerHTML = `<h2>${year}</h2>`;
 
-    shelf.appendChild(section);
+  const bookContainer = document.createElement('div'); // create once per year
+  bookContainer.className = 'book-container';
+
+  for (const book of booksByYear[year]) {
+    const coverUrl = await fetchCover(book.ISBN);
+    const bookDiv = document.createElement('div');
+    bookDiv.className = 'book-card';
+    bookDiv.innerHTML = `
+      <img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; border-radius: 6px;" />
+      <div>
+        <p><strong>${book.Title}</strong><br>
+        by ${book.Author}<br>
+        Meeting: ${book['Meeting Date']}</p>
+      </div>
+    `;
+    bookContainer.appendChild(bookDiv); // add each book to the container
   }
+
+  section.appendChild(bookContainer); // add the whole container once
+  shelf.appendChild(section);         // add the whole section to the shelf
+}
 
   // Add back the "jump to top" link
   const topLink = document.createElement('div');
