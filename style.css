@@ -54,7 +54,7 @@ main {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  flex-direction: column;
+  flex-direction: row;
   width: 260px;
   box-sizing: border-box;
 }
