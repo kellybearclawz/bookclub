@@ -85,27 +85,25 @@ img {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  background-color: #f4e4d4;
-  padding: 0.75rem;
-  border-radius: 8px;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
 }
 
 .year-nav a {
   text-decoration: none;
   color: #5e4b3c;
-  font-weight: bold;
-  padding: 0.25rem 0.75rem;
-  border: 1px solid #e0cfc2;
+  background-color: #f4e4d4;
+  padding: 0.4rem 0.8rem;
   border-radius: 5px;
-  background-color: #fff5ea;
-  transition: background-color 0.3s ease;
+  font-weight: bold;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .year-nav a:hover {
   background-color: #fce8d9;
 }
+
 .year-links {
   text-align: center;
   margin: 1rem auto;
