@@ -9,7 +9,7 @@ function generateChart(data, label, title, elementId) {
   });
 
   const chart = new Chart(ctx, {
-    type: 'donut',
+    type: 'doughnut',
     data: {
       labels: Object.keys(counts),
       datasets: [{
