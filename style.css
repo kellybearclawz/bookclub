@@ -80,26 +80,6 @@ img {
   }
 }
 
-/* Jump to top link */
-#top-link {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  background: #f4e4d4;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: none;
-  color: #5e4b3c;
-  font-weight: bold;
-  display: none;
-  z-index: 1000;
-}
-
-#top-link.show {
-  display: block;
-}
-
 /* Year filter links */
 .year-nav {
   display: flex;
@@ -162,4 +142,24 @@ img {
 
 #back-to-top:hover {
   background-color: #fce8d9;
+}
+
+/* Jump to top link */
+#top-link {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #f4e4d4;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: #5e4b3c;
+  font-weight: bold;
+  display: none;
+  z-index: 1000;
+}
+
+#top-link.show {
+  display: block;
 }
