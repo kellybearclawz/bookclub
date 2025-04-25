@@ -144,9 +144,9 @@ img {
 }
 
 .back-to-top {
-  text-align: right;
+  text-align: center;
   margin-top: 1rem;
-  font-size: 0.9rem;
+  font-size: 2rem;
 }
 
 .back-to-top a {
