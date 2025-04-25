@@ -105,23 +105,26 @@ img {
 }
 
 .year-links {
-  text-align: center;
-  margin: 1rem auto;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fff8f0; /* match page background */
+  font-weight: bold;
+  color: #5e4b3c;
+  border-bottom: 2px solid #e0cfc2;
+  flex-wrap: wrap;
 }
 
 .year-links a {
-  background: #e0cfc2;
-  color: #5e4b3c;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
   text-decoration: none;
+  color: #5e4b3c;
   font-weight: bold;
 }
 
+.year-links a:hover {
+  text-decoration: underline;
+}
 #back-to-top {
   position: fixed;
   bottom: 1.5rem;
