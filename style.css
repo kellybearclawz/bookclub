@@ -30,11 +30,11 @@ main {
 }
 
 #bookshelf > div {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);  
   padding: 1rem;
   margin-bottom: 1rem;
   flex-direction: row;
