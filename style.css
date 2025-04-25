@@ -33,17 +33,19 @@ main {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   padding: 1rem;
   margin-bottom: 1rem;
   flex-direction: row;
 }
 
-@media (max-width: 600px) {
+/*@media (max-width: 600px) {
   #bookshelf > div {
     flex-direction: column;
     align-items: center;
     text-align: center;
-  }
+  }*/
 
   #bookshelf img {
     margin-bottom: 1rem;
