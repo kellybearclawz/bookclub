@@ -1,3 +1,8 @@
+function getMeetingYear(dateString) {
+  const date = new Date(dateString);
+  return date.getFullYear();
+}
+
 async function fetchCover(isbn) {
   if (isbn) {
     return `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
@@ -8,22 +13,53 @@ async function fetchCover(isbn) {
 
 async function renderBooks(data) {
   const shelf = document.getElementById('bookshelf');
+
+  // Group books by meeting year
+  const booksByYear = {};
   for (const book of data) {
-    const coverUrl = await fetchCover(book.ISBN); // Pass the ISBN here
-    const div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.alignItems = 'flex-start';
-    div.style.gap = '1rem';
-    div.innerHTML = `
-      <img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; height: auto; border-radius: 6px;" />
-      <div>
-        <p><strong>${book.Title}</strong><br>
-        by ${book.Author}<br>
-        Meeting: ${book['Meeting Date']}</p>
-      </div>
-    `;
-    shelf.appendChild(div);
+    const year = getMeetingYear(book['Meeting Date']);
+    if (!booksByYear[year]) {
+      booksByYear[year] = [];
+    }
+    booksByYear[year].push(book);
   }
+
+  // Create jump links
+  const years = Object.keys(booksByYear).sort();
+  const yearLinksDiv = document.createElement('div');
+  yearLinksDiv.className = 'year-links';
+  yearLinksDiv.innerHTML = years.map(y => `<a href="#year-${y}">${y}</a>`).join(' | ');
+  shelf.appendChild(yearLinksDiv);
+
+  // Render each year's section
+  for (const year of years) {
+    const section = document.createElement('section');
+    section.id = `year-${year}`;
+    section.innerHTML = `<h2>${year}</h2>`;
+    
+    for (const book of booksByYear[year]) {
+      const coverUrl = await fetchCover(book.ISBN);
+      const bookDiv = document.createElement('div');
+      bookDiv.className = 'book-card';
+      bookDiv.innerHTML = `
+        <img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; border-radius: 6px;" />
+        <div>
+          <p><strong>${book.Title}</strong><br>
+          by ${book.Author}<br>
+          Genre: ${book.Genre}<br>
+          Meeting: ${book['Meeting Date']}</p>
+        </div>
+      `;
+      section.appendChild(bookDiv);
+    }
+
+    shelf.appendChild(section);
+  }
+
+  // Add back the "jump to top" link
+  const topLink = document.createElement('div');
+  topLink.innerHTML = `<a href="#top" id="top-link">↑ Back to Top</a>`;
+  shelf.appendChild(topLink);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
