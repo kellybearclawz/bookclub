@@ -19,7 +19,6 @@ async function renderBooks(data) {
       <div>
         <p><strong>${book.Title}</strong><br>
         by ${book.Author}<br>
-       // Genre: ${book.Genre}<br>
         Meeting: ${book['Meeting Date']}</p>
       </div>
     `;
