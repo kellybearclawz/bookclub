@@ -142,25 +142,22 @@ img {
 .year-links a:hover {
   text-decoration: underline;
 }
-#back-to-top {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  background-color: #f4e4d4;
-  color: #5e4b3c;
-  border: 1px solid #e0cfc2;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  display: none; /* Hidden by default */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  z-index: 100;
+
+.back-to-top {
+  text-align: right;
+  margin-top: 1rem;
+  font-size: 0.9rem;
 }
 
-#back-to-top:hover {
-  background-color: #fce8d9;
+.back-to-top a {
+  color: #7c5e44;
+  text-decoration: none;
 }
+
+.back-to-top a:hover {
+  text-decoration: underline;
+}
+
 
 /* Jump to top link */
 #top-link {
