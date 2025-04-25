@@ -1,34 +1,38 @@
-function renderChart(data) {
-  const genreCounts = {};
+// stats.js
+function groupByGenre(data) {
+  const genreCount = {};
   data.forEach(book => {
-    const genre = book.Genre.trim();
+    const genre = book.Genre?.trim();
     if (genre) {
-      genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+      genreCount[genre] = (genreCount[genre] || 0) + 1;
     }
   });
+  return genreCount;
+}
 
-  const ctx = document.getElementById('genreChart').getContext('2d');
+function renderChart(genreData) {
+  const ctx = document.getElementById('genreChart');
   new Chart(ctx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
-      labels: Object.keys(genreCounts),
+      labels: Object.keys(genreData),
       datasets: [{
-        label: 'Books per Genre',
-        data: Object.values(genreCounts),
-        backgroundColor: '#bfa87a',
-        borderColor: '#7e6a53',
-        borderWidth: 1
+        label: 'Books by Genre',
+        data: Object.values(genreData),
+        backgroundColor: [
+          '#f9c6c9', '#cdeac0', '#f7d794', '#d3c0f9', '#b8e0f2', '#f6a6b2'
+        ]
       }]
     },
     options: {
+      responsive: true,
       plugins: {
         legend: {
-          display: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true
+          position: 'right'
+        },
+        title: {
+          display: true,
+          text: 'Distribution of Book Genres'
         }
       }
     }
@@ -36,11 +40,12 @@ function renderChart(data) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  Papa.parse("Book Club - Books Read_ISBN.csv", {
+  Papa.parse('Book Club - Books Read_ISBN.csv', {
     download: true,
     header: true,
     complete: function(results) {
-      renderChart(results.data);
+      const genreData = groupByGenre(results.data);
+      renderChart(genreData);
     }
   });
 });
