@@ -126,7 +126,7 @@ img {
 .year-nav a:hover {
   background-color: #fce8d9;
 }
-/*.year-links {
+.year-links {
   text-align: center;
   margin: 1rem auto;
   display: flex;
@@ -142,4 +142,4 @@ img {
   border-radius: 6px;
   text-decoration: none;
   font-weight: bold;
-}*/
+}
