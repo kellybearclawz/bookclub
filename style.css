@@ -101,7 +101,32 @@ img {
 }
 
 /* Year filter links */
-.year-links {
+.year-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background-color: #f4e4d4;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.year-nav a {
+  text-decoration: none;
+  color: #5e4b3c;
+  font-weight: bold;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #e0cfc2;
+  border-radius: 5px;
+  background-color: #fff5ea;
+  transition: background-color 0.3s ease;
+}
+
+.year-nav a:hover {
+  background-color: #fce8d9;
+}
+/*.year-links {
   text-align: center;
   margin: 1rem auto;
   display: flex;
@@ -117,4 +142,4 @@ img {
   border-radius: 6px;
   text-decoration: none;
   font-weight: bold;
-}
+}*/
