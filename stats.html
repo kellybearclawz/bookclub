@@ -1,3 +1,4 @@
+<!-- stats.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Book Club Stats</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 <body>
   <nav>
@@ -16,11 +15,11 @@
     <a href="about.html">About</a>
   </nav>
   <main>
-    <h1>Book Club Stats</h1>
+    <h1>Genre Breakdown</h1>
     <canvas id="genreChart" width="400" height="400"></canvas>
   </main>
-
-
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="stats.js"></script>
 </body>
 </html>
