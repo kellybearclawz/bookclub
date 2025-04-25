@@ -14,10 +14,18 @@
     <a href="stats.html">Stats</a>
     <a href="about.html">About</a>
   </nav>
+  
   <main>
     <h1>Genre Breakdown</h1>
+    <div style="width: 50%; height: 50%;">
+      <canvas id="genreChart"></canvas>
+    </div>
+    <div style="width: 50%; height: 50%;">
+      <canvas id="subgenreChart"></canvas>
+    </div>
+
   <!--  <canvas id="genreChart" width="400" height="400"></canvas> -->
-    <canvas id="subgenreChart" width="400" height="400"></canvas>
+  <!-- <canvas id="subgenreChart" width="400" height="400"></canvas> -->
   </main>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
