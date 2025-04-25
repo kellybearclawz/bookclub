@@ -29,7 +29,7 @@ async function renderBooks(data) {
   const yearLinksDiv = document.createElement('year-links'); // grabs the one already in your HTML
   yearLinksDiv.className = 'year-links';
   yearLinksDiv.innerHTML = years.map(y => `<a href="#year-${y}">${y}</a>`).join(' | ');
-  //shelf.appendChild(yearLinksDiv);
+  shelf.appendChild(yearLinksDiv);
 
   // Render each year's section
   for (const year of years) {
