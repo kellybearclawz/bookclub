@@ -199,12 +199,22 @@ section h2 {
 }
 
 .chart-container {
-  width: 100%;
+  width: 90%;
   max-width: 600px;
   height: 400px;
-  margin: 0 auto;
+  background: #f9f5f0; /* Soft cream background */
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  margin: 2rem auto; /* Center with space around */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 canvas {
   width: 100% !important;
   height: 100% !important;
+  border-radius: 12px;
 }
+
