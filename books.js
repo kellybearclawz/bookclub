@@ -80,7 +80,8 @@ window.addEventListener('DOMContentLoaded', () => {
     download: true,
     header: true,
     complete: function(results) {
-      renderBooks(results.data);
+      const cleanedData = results.data.filter(book => book['Title'] && book['Meeting Date']);
+      renderBooks(cleanedData);
     }
   });
 });
