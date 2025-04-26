@@ -18,7 +18,6 @@ function generateChart(data, label, title, elementId) {
 
   const backgroundColors = Object.keys(counts).map(label => stringToCozyColor(label));
 
-
   new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -61,3 +60,26 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// adding functionality to click and display the books from the genre
+document.querySelectorAll('.sub-genre').forEach(subGenre => {
+    subGenre.addEventListener('click', function() {
+        displayBooks(subGenre.dataset.genre);
+    });
+});
+
+function displayBooks(genre) {
+    // Fetch books from your data source
+    fetch(`path/to/your/books/data?genre=${genre}`)
+        .then(response => response.json())
+        .then(data => {
+            const booksContainer = document.getElementById('books-container');
+            booksContainer.innerHTML = ''; // Clear previous books
+            data.books.forEach(book => {
+                const bookElement = document.createElement('div');
+                bookElement.className = 'book';
+                bookElement.innerHTML = `<h3>${book.title}</h3><p>${book.author}</p>`;
+                booksContainer.appendChild(bookElement);
+            });
+        });
+}
