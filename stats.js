@@ -86,11 +86,11 @@ function displayBooks(genre) {
         complete: function(results) {
             const booksContainer = document.getElementById('books-container');
             booksContainer.innerHTML = ''; // Clear previous books
-            const filteredBooks = results.data.filter(book => book.genre === genre);
+            const filteredBooks = results.data.filter(book => book['Sub-Genre'] === genre);
             filteredBooks.forEach(book => {
                 const bookElement = document.createElement('div');
                 bookElement.className = 'book';
-                bookElement.innerHTML = `<h3>${book.title}</h3><p>${book.author}</p>`;
+                bookElement.innerHTML = `<h3>${book.Title}</h3><p>${book.Author}</p>`;
                 booksContainer.appendChild(bookElement);
             });
         }
