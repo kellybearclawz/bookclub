@@ -14,12 +14,14 @@ nav {
   gap: 1rem;
   justify-content: center;
   border-bottom: 2px solid #e0cfc2;
+  font-size: 1.5rem;
 }
 
 nav a {
   text-decoration: none;
   color: #5e4b3c;
   font-weight: bold;
+  font-size: 1.5rem;
 }
 
 main {
@@ -88,7 +90,7 @@ img {
   }
 
   #bookshelf div {
-    width: 90%;
+    width: 100%;
   }
 
   nav {
@@ -144,7 +146,7 @@ img {
 .back-to-top {
   text-align: center;
   margin-top: 1rem;
-  font-size: 2rem;
+  font-size: 1.5rem;
 }
 
 .back-to-top a {
