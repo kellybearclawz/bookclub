@@ -200,8 +200,8 @@ section h2 {
   }
 }
 
-@media screen and (max-width: 200px) {
+/*@media screen and (max-width: 200px) {
   /* These styles will be applied when the screen width is 300 pixels or less */
   body { font-size: 16px; } /* Make text larger on smaller screens */
   .container { width: 100%; } /* Full width on mobile */
-}
+}*/
