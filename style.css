@@ -189,7 +189,7 @@ section h2 {
 }
 
 /* Responsive for mobile */
-@media (max-width: 600px) {
+@media (max-width: 200px) {
   section h2 {
     font-size: 2rem;
     text-align: center;
@@ -200,7 +200,7 @@ section h2 {
   }
 }
 
-@media screen and (max-width: 300px) {
+@media screen and (max-width: 200px) {
   /* These styles will be applied when the screen width is 300 pixels or less */
   body { font-size: 16px; } /* Make text larger on smaller screens */
   .container { width: 100%; } /* Full width on mobile */
