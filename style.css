@@ -1,4 +1,6 @@
 /* style.css */
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 body {
   font-family: 'Georgia', serif;
   background-color: #fff8f0;
@@ -14,6 +16,7 @@ nav {
   gap: 1rem;
   justify-content: center;
   border-bottom: 2px solid #e0cfc2;
+  font-size: 2rem;
 }
 
 nav a {
@@ -81,11 +84,7 @@ img {
   height: auto;
 }
 
-@media (max-width: 600px) {
-  #bookshelf {
-    flex-direction: row;
-    align-items: center;
-  }
+
 
   #bookshelf div {
     width: 90%;
@@ -194,4 +193,14 @@ section h2 {
     font-size: 2rem;
     text-align: center;
   }
+  #bookshelf {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  /* These styles will be applied when the screen width is 600 pixels or less */
+  body { font-size: 16px; } /* Make text larger on smaller screens */
+  .container { width: 100%; } /* Full width on mobile */
 }
