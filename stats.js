@@ -69,17 +69,19 @@ document.querySelectorAll('.sub-genre').forEach(subGenre => {
 });
 
 function displayBooks(genre) {
-    // Fetch books from your data source
-    fetch(`path/to/your/books/data?genre=${genre}`)
-        .then(response => response.json())
-        .then(data => {
+    Papa.parse("Book Club - Books Read_ISBN.csv", {
+        download: true,
+        header: true,
+        complete: function(results) {
             const booksContainer = document.getElementById('books-container');
             booksContainer.innerHTML = ''; // Clear previous books
-            data.books.forEach(book => {
+            const filteredBooks = results.data.filter(book => book.genre === genre);
+            filteredBooks.forEach(book => {
                 const bookElement = document.createElement('div');
                 bookElement.className = 'book';
                 bookElement.innerHTML = `<h3>${book.title}</h3><p>${book.author}</p>`;
                 booksContainer.appendChild(bookElement);
             });
-        });
+        }
+    });
 }
