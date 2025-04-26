@@ -51,7 +51,7 @@ async function renderBooks(data) {
         <p><strong>${book.Title}</strong><br>
         by ${book.Author}<br>
         Meeting: ${book['Meeting Date']}</p>
-        <a href="${book['Goodreads URL']}" target="_blank">Goodreads Link</a></p>
+        <p><a href="${book['Goodreads URL']}" target="_blank">Goodreads Link</a></p>
       </div>
     `;
     bookContainer.appendChild(bookDiv);
