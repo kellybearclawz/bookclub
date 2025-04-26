@@ -42,7 +42,7 @@ const chart = new Chart(ctx, {
 
 
 window.addEventListener('DOMContentLoaded', () => {
-  Papa.parse("Book Club - Books Read_ISBN_Genres_Updated.csv", {
+  Papa.parse("Book Club - Books Read_ISBN.csv", {
     download: true,
     header: true,
     complete: function(results) {
