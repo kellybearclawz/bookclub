@@ -50,7 +50,7 @@ function generateChart(data, label, title, elementId) {
 }
 
 
-window.addEventListener('DOMContentLoaded', () => {
+/*window.addEventListener('DOMContentLoaded', () => {
   Papa.parse("Book Club - Books Read_ISBN.csv", {
     download: true,
     header: true,
@@ -59,12 +59,23 @@ window.addEventListener('DOMContentLoaded', () => {
       generateChart(data, 'Sub-Genre', 'Books by Sub-Genre', 'subgenreChart');
     }
   });
-});
+});*/
 
-// adding functionality to click and display the books from the genre
-document.querySelectorAll('.sub-genre').forEach(subGenre => {
-    subGenre.addEventListener('click', function() {
-        displayBooks(subGenre.dataset.genre);
+window.addEventListener('DOMContentLoaded', () => {
+    Papa.parse("Book Club - Books Read_ISBN.csv", {
+        download: true,
+        header: true,
+        complete: function(results) {
+            const data = results.data.filter(book => book['Title']); // small cleanup to skip blank rows
+            generateChart(data, 'Sub-Genre', 'Books by Sub-Genre', 'subgenreChart');
+
+            // Add event listeners after chart is generated
+            document.querySelectorAll('.sub-genre').forEach(subGenre => {
+                subGenre.addEventListener('click', function() {
+                    displayBooks(subGenre.textContent);
+                });
+            });
+        }
     });
 });
 
