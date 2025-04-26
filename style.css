@@ -197,3 +197,14 @@ section h2 {
     text-align: center;
   }
 }
+
+.chart-container {
+  width: 100%;
+  max-width: 600px;
+  height: 400px;
+  margin: 0 auto;
+}
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
