@@ -63,7 +63,7 @@ async function renderBooks(data) {
     // Add "Back to Top" link under each section
     const backToTop = document.createElement('div');
     backToTop.className = 'back-to-top';
-    backToTop.innerHTML = `<a href="#top">↑ Back to Top</a>`;
+    backToTop.innerHTML = `<a href="#top">↑ Back to Top ↑</a>`;
     section.appendChild(backToTop);
 
     shelf.appendChild(section);
@@ -71,7 +71,7 @@ async function renderBooks(data) {
 
   // Add one last back to top link
   const topLink = document.createElement('div');
-  topLink.innerHTML = `<a href="#top" id="top-link">↑ Back to Top</a>`;
+  topLink.innerHTML = `<a href="#top" id="top-link">↑ Back to Top ↑</a>`;
   shelf.appendChild(topLink);
 }
 
