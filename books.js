@@ -40,7 +40,7 @@ async function renderBooks(data) {
       const isbn = cleanISBN(book.ISBN);
       const coverUrl = isbn
         ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
-        : 'https://via.placeholder.com/128x193.png?text=No+Cover';
+        : 'https://kellybearclawz.github.io//bookclub/default-cover.jpg;
 
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book-card fade-in';
