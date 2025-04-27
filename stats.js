@@ -102,7 +102,7 @@ async function displayBooks(genre) {
                     <p><strong>${book.Title}</strong><br>
                     by ${book.Author}<br>
                     Meeting: ${book['Meeting Date']}<br>
-                    <a href="${book['Goodreads URL']}" target="_blank">Goodreads URL</a></p>
+                    <p><a href="${book['Goodreads URL']}" target="_blank">Goodreads Link</a></p>
                   </div>
                 `;
                 bookContainer.appendChild(bookDiv); // <- Add each book to bookContainer
