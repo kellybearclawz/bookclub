@@ -69,7 +69,7 @@ async function displayBooks(genre) {
     Papa.parse("Book Club - Books Read_ISBN.csv", {
         download: true,
         header: true,
-        complete: async function(results) {
+        complete: function(results) {
             const booksContainer = document.getElementById('books-container');
             booksContainer.innerHTML = ''; // Clear previous books
             const filteredBooks = results.data.filter(book => book['Sub-Genre'] === genre);
@@ -80,22 +80,25 @@ async function displayBooks(genre) {
             }
 
             const bookContainer = document.createElement('div');
-            bookContainer.className = 'book-container'; // same as your bookshelf layout
+            bookContainer.className = 'book-container'; // same class as your bookshelf layout
 
             filteredBooks.forEach((book, index) => {
-            const bookDiv = document.createElement('div');
-            bookDiv.className = 'book-card fade-in';
-            bookDiv.style.animationDelay = `${index * 0.1}s`; // <--- stagger each by 0.1s
-            bookDiv.innerHTML = `
-              <img src="..." alt="..." />
-              <div>
-                <p><strong>${book.Title}</strong><br>
-                by ${book.Author}<br>
-                Meeting: ${book['Meeting Date']}<br>
-                <a href="${book['Goodreads URL']}" target="_blank">Goodreads URL</a></p>
-              </div>
-            `;
-            booksContainer.appendChild(bookDiv);
-            }
-    );
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'book-card fade-in';
+                bookDiv.style.animationDelay = `${index * 0.1}s`; // Stagger animation
+                bookDiv.innerHTML = `
+                  <img src="..." alt="..." />
+                  <div>
+                    <p><strong>${book.Title}</strong><br>
+                    by ${book.Author}<br>
+                    Meeting: ${book['Meeting Date']}<br>
+                    <a href="${book['Goodreads URL']}" target="_blank">Goodreads URL</a></p>
+                  </div>
+                `;
+                bookContainer.appendChild(bookDiv); // <- Add each book to bookContainer
+            });
+
+            booksContainer.appendChild(bookContainer); // <- Finally add the whole bookContainer
+        }
+    });
 }
