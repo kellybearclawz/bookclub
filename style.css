@@ -7,6 +7,14 @@ body {
   padding: 0;
 }
 
+.sub-header {
+    font-size: 1.5rem;
+    margin: 1rem 0;
+    color: #5d3a00;
+    text-align: center;
+}
+
+
 nav {
   background-color: #f4e4d4;
   padding: 1rem;
@@ -76,6 +84,7 @@ main {
   flex-direction: row;
   width: 260px;
   box-sizing: border-box;
+   width: 100%;
 }
 
 img {
@@ -89,9 +98,9 @@ img {
     align-items: center;
   }
 
-  #bookshelf div {
-    width: 100%;
-  }
+ /* #bookshelf div {
+   
+  }*/
 
   nav {
     flex-direction: row;
