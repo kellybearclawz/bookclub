@@ -74,6 +74,12 @@ async function displayBooks(genre) {
             booksContainer.innerHTML = ''; // Clear previous books
             const filteredBooks = results.data.filter(book => book['Sub-Genre'] === genre);
 
+             // Add the subheader here
+            const subHeader = document.createElement('h2');
+            subHeader.className = 'sub-header';
+            subHeader.innerHTML = `📚 ${genre} — ${filteredBooks.length} books`;
+            booksContainer.appendChild(subHeader);
+
             if (filteredBooks.length === 0) {
                 booksContainer.innerHTML = `<p>No books found in the subgenre: ${genre}</p>`;
                 return;
