@@ -65,24 +65,42 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function displayBooks(genre) {
+async function displayBooks(genre) {
     Papa.parse("Book Club - Books Read_ISBN.csv", {
         download: true,
         header: true,
-        complete: function(results) {
+        complete: async function(results) {
             const booksContainer = document.getElementById('books-container');
             booksContainer.innerHTML = ''; // Clear previous books
             const filteredBooks = results.data.filter(book => book['Sub-Genre'] === genre);
+
             if (filteredBooks.length === 0) {
                 booksContainer.innerHTML = `<p>No books found in the subgenre: ${genre}</p>`;
                 return;
             }
-            filteredBooks.forEach(book => {
-                const bookElement = document.createElement('div');
-                bookElement.className = 'book';
-                bookElement.innerHTML = `<h3>${book.Title}</h3><p>By ${book.Author}</p>`;
-                booksContainer.appendChild(bookElement);
-            });
+
+            const bookContainer = document.createElement('div');
+            bookContainer.className = 'book-container'; // same as your bookshelf layout
+
+            for (const book of filteredBooks) {
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'book-card'; // cozy card
+                const coverUrl = book.ISBN ? `https://covers.openlibrary.org/b/isbn/${book.ISBN}-M.jpg` : 'default-cover.jpg';
+
+                bookDiv.innerHTML = `
+                    <img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; border-radius: 6px;" />
+                    <div>
+                        <p><strong>${book.Title}</strong><br>
+                        by ${book.Author}<br>
+                        Meeting: ${book['Meeting Date']}<br>
+                        <a href="${book['Goodreads URL']}" target="_blank" style="color: #6b4c3b;">Goodreads URL</a></p>
+                    </div>
+                `;
+                bookDiv.classList.add('fade-in');
+                bookContainer.appendChild(bookDiv);
+            }
+
+            booksContainer.appendChild(bookContainer);
         }
     });
 }
