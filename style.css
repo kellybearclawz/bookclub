@@ -230,3 +230,10 @@ canvas {
     transform: translateY(0);
   }
 }
+
+.book-card img {
+    width: 128px;
+    height: 193px;
+    object-fit: cover;
+    border-radius: 8px;
+}
