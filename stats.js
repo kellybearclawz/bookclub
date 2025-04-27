@@ -82,25 +82,20 @@ async function displayBooks(genre) {
             const bookContainer = document.createElement('div');
             bookContainer.className = 'book-container'; // same as your bookshelf layout
 
-            for (const book of filteredBooks) {
-                const bookDiv = document.createElement('div');
-                bookDiv.className = 'book-card'; // cozy card
-                const coverUrl = book.ISBN ? `https://covers.openlibrary.org/b/isbn/${book.ISBN}-M.jpg` : 'default-cover.jpg';
-
-                bookDiv.innerHTML = `
-                    <img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; border-radius: 6px;" />
-                    <div>
-                        <p><strong>${book.Title}</strong><br>
-                        by ${book.Author}<br>
-                        Meeting: ${book['Meeting Date']}<br>
-                        <a href="${book['Goodreads URL']}" target="_blank" style="color: #6b4c3b;">Goodreads URL</a></p>
-                    </div>
-                `;
-                bookDiv.classList.add('fade-in');
-                bookContainer.appendChild(bookDiv);
+            filteredBooks.forEach((book, index) => {
+            const bookDiv = document.createElement('div');
+            bookDiv.className = 'book-card fade-in';
+            bookDiv.style.animationDelay = `${index * 0.1}s`; // <--- stagger each by 0.1s
+            bookDiv.innerHTML = `
+              <img src="..." alt="..." />
+              <div>
+                <p><strong>${book.Title}</strong><br>
+                by ${book.Author}<br>
+                Meeting: ${book['Meeting Date']}<br>
+                <a href="${book['Goodreads URL']}" target="_blank">Goodreads URL</a></p>
+              </div>
+            `;
+            booksContainer.appendChild(bookDiv);
             }
-
-            booksContainer.appendChild(bookContainer);
-        }
-    });
+    );
 }
