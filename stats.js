@@ -84,10 +84,14 @@ async function displayBooks(genre) {
 
             filteredBooks.forEach((book, index) => {
                 const bookDiv = document.createElement('div');
+                const isbn = book.ISBN?.replace(/[^0-9Xx]/g, ''); // Clean up the ISBN just in case
+                const coverUrl = isbn 
+                    ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg` 
+                    : 'https://via.placeholder.com/128x193.png?text=No+Cover'; // fallback image
                 bookDiv.className = 'book-card fade-in';
                 bookDiv.style.animationDelay = `${index * 0.1}s`; // Stagger animation
                 bookDiv.innerHTML = `
-                  <img src="..." alt="..." />
+                  <img src="${coverUrl}" alt="Cover of ${book.Title}" />
                   <div>
                     <p><strong>${book.Title}</strong><br>
                     by ${book.Author}<br>
