@@ -44,9 +44,17 @@ async function renderBooks(data) {
   for (const book of booksByYear[year]) {
     const coverUrl = await fetchCover(book.ISBN);
     const bookDiv = document.createElement('div');
-    bookDiv.className = 'book-card';
+    bookDiv.className = 'book-card fade-in';
+    bookDiv.style.animationDelay = `${index * 0.1}s`;
+
+    const isbn = book.ISBN?.replace(/[^0-9Xx]/g, ''); // clean ISBN
+    const coverUrl = isbn 
+      ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
+      : 'https://via.placeholder.com/128x193.png?text=No+Cover';
+    
     bookDiv.innerHTML = `
-      <img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; border-radius: 6px;" />
+      //<img src="${coverUrl}" alt="Cover of ${book.Title}" style="width: 80px; border-radius: 6px;" />
+      <img src="${coverUrl}" alt="Cover of ${book.Title}" onerror="this.onerror=null;this.src='https://via.placeholder.com/128x193.png?text=No+Cover';" />
       <div>
         <p><strong>${book.Title}</strong><br>
         by ${book.Author}<br>
