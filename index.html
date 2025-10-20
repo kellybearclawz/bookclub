@@ -1,45 +1,114 @@
-te<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Book Club</title>
-    <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Club</title>
+  <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Optional soft styling if your CSS doesn’t already cover it */
+    :root {
+      --cream: #fff9f3;
+      --rose: #d9a7a0;
+      --ink: #2b2b2b;
+    }
+    #next-meeting, #book-summary {
+      background: var(--cream);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      margin: 1rem auto;
+      max-width: 820px;
+    }
+    #next-meeting h1, #book-summary h2 {
+      margin-top: 0;
+      color: #7a5c5c;
+    }
+    .book-card {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    .book-cover {
+      width: 160px;
+      height: 240px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #eee;
+      border: 1px solid #f0e6e3;
+    }
+    .meta {
+      font-size: .95rem;
+      color: #5a4a4a;
+      margin: .25rem 0 .75rem;
+    }
+    .tag {
+      display:inline-block; 
+      background: var(--rose); 
+      color:#fff; 
+      padding:.2rem .55rem; 
+      border-radius:999px; 
+      font-size:.8rem; 
+      margin-right:.4rem
+    }
+    .btn {
+      display:inline-block; 
+      margin-top: .75rem; 
+      padding:.6rem 1rem; 
+      background: var(--rose); 
+      color:#fff; 
+      border-radius:999px; 
+      text-decoration:none
+    }
+    .btn:hover { opacity:.9; }
+    p { line-height: 1.6; color: var(--ink); }
+  </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="index.html">Home</a> |
-            <a href="books.html">Books</a> |
-            <a href="stats.html">Stats</a>
-            <!--<a href="about.html">About</a>-->
-        </nav>
-    </header>
-    <main>
-        <section id="next-meeting">
-            <h1>Next Meeting:September 17, 2025</h1>
-            <p>Current Book: <em>The Wedding People</em> by Alison Espach</p>
-        </section>
-      <section id="book-summary">
-            <h2>Goodreads Summary</h2>
-          <p style="max-width: 500px;">
-           
-           <p>
-It’s a beautiful day in Newport, Rhode Island, when Phoebe Stone arrives at the grand Cornwall Inn wearing a green dress and gold heels, not a bag in sight, alone. She's immediately mistaken by everyone in the lobby for one of the wedding people, but she’s actually the only guest at the Cornwall who isn’t here for the big event. Phoebe is here because she’s dreamed of coming for years—she hoped to shuck oysters and take sunset sails with her husband, only now she’s here without him, at rock bottom, and determined to have one last decadent splurge on herself. Meanwhile, the bride has accounted for every detail and every possible disaster the weekend might yield except for, well, Phoebe and Phoebe's plan—which makes it that much more surprising when the two women can’t stop confiding in each other.
+  <header>
+    <nav>
+      <a href="index.html">Home</a> |
+      <a href="books.html">Books</a> |
+      <a href="stats.html">Stats</a>
+      <!-- <a href="about.html">About</a> -->
+    </nav>
+  </header>
 
-In turns absurdly funny and devastatingly tender, Alison Espach’s The Wedding People is ultimately an incredibly nuanced and resonant look at the winding paths we can take to places we never imagined—and the chance encounters it sometimes takes to reroute us.<br>
-            
+  <main>
+    <section id="next-meeting">
+      <h1>Next Meeting: November 19, 2025</h1>
+      <p>Current Book: <em>Gone Before Goodbye</em> by Reese Witherspoon &amp; Harlan Coben</p>
+      <div class="meta">
+        <span class="tag">Thriller</span>
+        <span class="tag">Mystery</span>
+        <span class="tag">Suspense</span>
+      </div>
+    </section>
 
-        </p>
-        </section>
+    <section id="book-summary">
+      <h2>Goodreads Summary</h2>
+      <div class="book-card">
+        <!-- If you have a local cover asset, replace with /images/gone-before-goodbye.jpg -->
+        <img class="book-cover" src="https://images-na.ssl-images-amazon.com/images/P/1538774704.01._SCLZZZZZZZ_SX500_.jpg" alt="Gone Before Goodbye cover" />
+        <div>
+          <p>
+            Maggie McCabe, a former Army surgeon whose life and medical license have unraveled, takes a hush-hush job with an elite plastic surgeon whose clients demand absolute discretion. When a case goes sideways, she’s pulled into a dangerous web of secrets and powerful enemies—forcing her to confront what really happened in her past and how far she’ll go to expose the truth.
+          </p>
+          <p class="meta">Published October 2025 • Grand Central Publishing</p>
+          <a class="btn" href="https://www.goodreads.com/book/show/219385951-gone-before-goodbye" target="_blank" rel="noopener">View on Goodreads</a>
+        </div>
+      </div>
+    </section>
 
-        <section id="book-trailer">
-            
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2025 Book Club</p>
-    </footer>
+    <section id="book-trailer">
+      <!-- Optional: embed later if an official trailer appears -->
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Book Club</p>
+  </footer>
 </body>
 </html>
