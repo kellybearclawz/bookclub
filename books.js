@@ -36,7 +36,7 @@ async function renderBooks(data) {
     const bookContainer = document.createElement('div');
     bookContainer.className = 'book-container';
 
-    booksByYear[year].forEach((book, index) => {
+    booksByYear[year].reverse().forEach((book, index) => {
       const isbn = cleanISBN(book.ISBN);
       const coverUrl = isbn
         ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
@@ -47,7 +47,7 @@ async function renderBooks(data) {
       bookDiv.style.animationDelay = `${index * 0.1}s`;
 
       bookDiv.innerHTML = `
-        <img src="${coverUrl}" alt="Cover of ${book.Title}" onerror="this.onerror=null;this.src='https://via.placeholder.com/128x193.png?text=No+Cover';" />
+        <img src="${coverUrl}" alt="Cover of ${book.Title}" onerror="this.onerror=null;this.src='https://kellybearclawz.github.io//bookclub/default-cover.jpg';" />
         <div>
           <p><strong>${book.Title}</strong><br>
           by ${book.Author}<br>
