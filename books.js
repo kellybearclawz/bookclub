@@ -21,7 +21,7 @@ async function renderBooks(data) {
   }
 
   // Create jump links
-  const years = Object.keys(booksByYear).sort();
+  const years = Object.keys(booksByYear).sort().reverse();
   const yearLinksDiv = document.createElement('div');
   yearLinksDiv.className = 'year-links';
   yearLinksDiv.innerHTML = years.map(y => `<a href="#year-${y}">${y}</a>`).join(' | ');
