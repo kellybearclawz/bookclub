@@ -37,7 +37,8 @@ async function renderBooks(data) {
     bookContainer.className = 'book-container';
 
     booksByYear[year].reverse().forEach((book, index) => {
-      const isbn = cleanISBN(book.ISBN);
+      //const isbn = cleanISBN(book.ISBN);
+      const isbn = book.ISBN?.replace(/[^0-9Xx]/g, ''); // Clean up the ISBN just in case
       const coverUrl = isbn
         ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
         : 'https://kellybearclawz.github.io//bookclub/default-cover.jpg';
