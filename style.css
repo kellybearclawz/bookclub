@@ -148,6 +148,9 @@ img {
 
 .year-links a {
   color: #5e4b3c;
+  border-bottom: 2px solid #5e4b3c; /* Adds the line */
+  padding-bottom: 15px;          /* Space between links and line */
+  margin-bottom: 30px;           /* Space between line and first year */
   text-decoration: none;
   font-weight: bold;
   margin: 0 0.5rem;
