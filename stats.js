@@ -59,25 +59,34 @@ function generateChart(data, label, title, elementId) {
 }
 
 const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
-const coverCache = {};
 
-async function getGoogleBooksCover(isbn) {
-  if (!isbn) return null;
-  if (coverCache[isbn] !== undefined) return coverCache[isbn];
-  try {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
-    const data = await res.json();
-    if (data.items && data.items.length) {
-      const volumeId = data.items[0].id;
-      if (volumeId) {
-        const url = `https://books.google.com/books/content?id=${volumeId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
-        coverCache[isbn] = url;
-        return url;
+async function fetchCoversForISBNs(isbns) {
+  const unique = [...new Set(isbns.filter(Boolean))];
+  if (!unique.length) return {};
+  const bibkeys = unique.map(i => `ISBN:${i}`).join(',');
+  const url = `https://books.google.com/books?bibkeys=${encodeURIComponent(bibkeys)}&jscmd=viewapi&callback=__gbcb`;
+
+  return new Promise((resolve) => {
+    const result = {};
+    const timeout = setTimeout(() => resolve(result), 5000);
+
+    window.__gbcb = function(data) {
+      clearTimeout(timeout);
+      for (const key in data) {
+        const isbn = key.replace('ISBN:', '');
+        if (data[key].thumbnail_url) {
+          result[isbn] = data[key].thumbnail_url.replace('http://', 'https://');
+        }
       }
-    }
-  } catch {}
-  coverCache[isbn] = null;
-  return null;
+      delete window.__gbcb;
+      resolve(result);
+    };
+
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = () => { clearTimeout(timeout); resolve(result); };
+    document.head.appendChild(script);
+  });
 }
 
 async function displayBooks(genre) {
@@ -100,18 +109,23 @@ async function displayBooks(genre) {
         return;
       }
 
+      // Fetch all covers for this genre in one batch
+      const isbns = filteredBooks.map(b => b.ISBN?.replace(/[^0-9Xx]/g, '')).filter(Boolean);
+      const coverMap = await fetchCoversForISBNs(isbns);
+
       const bookContainer = document.createElement('div');
       bookContainer.className = 'book-container';
 
-      const coverFetches = filteredBooks.map((book, index) => {
+      filteredBooks.forEach((book, index) => {
         const isbn = book.ISBN?.replace(/[^0-9Xx]/g, '');
+        const coverUrl = (isbn && coverMap[isbn]) ? coverMap[isbn] : FALLBACK;
 
         const bookDiv = document.createElement('div');
         bookDiv.className = 'book-card fade-in';
         bookDiv.style.animationDelay = `${index * 0.08}s`;
 
         const img = document.createElement('img');
-        img.src = FALLBACK;
+        img.src = coverUrl;
         img.alt = `Cover of ${book.Title}`;
         img.onerror = () => { img.onerror = null; img.src = FALLBACK; };
 
@@ -126,14 +140,9 @@ async function displayBooks(genre) {
         bookDiv.appendChild(img);
         bookDiv.appendChild(info);
         bookContainer.appendChild(bookDiv);
-
-        return isbn
-          ? getGoogleBooksCover(isbn).then(url => { if (url) img.src = url; })
-          : Promise.resolve();
       });
 
       booksContainer.appendChild(bookContainer);
-      await Promise.all(coverFetches);
     }
   });
 }
