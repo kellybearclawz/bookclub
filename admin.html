@@ -553,26 +553,27 @@
     status.style.color = '#9a8a72';
 
     try {
-      const res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
       const data = await res.json();
-      const key = `ISBN:${isbn}`;
-      if (!data[key]) {
+      if (!data.items || !data.items.length) {
         status.textContent = 'Book not found. Fill in manually.';
         status.style.color = '#8b3a1a';
       } else {
-        const book = data[key];
+        const book = data.items[0].volumeInfo;
         if (book.title) document.getElementById('title').value = book.title;
-        if (book.authors && book.authors.length) document.getElementById('author').value = book.authors.map(a => a.name).join(', ');
-        if (book.publish_date) {
-          document.getElementById('datepublished').value = book.publish_date;
-          const yearMatch = book.publish_date.match(/\d{4}/);
-          if (yearMatch) document.getElementById('yearpublished').value = yearMatch[0];
+        if (book.authors && book.authors.length) document.getElementById('author').value = book.authors.join(', ');
+        if (book.publishedDate) {
+          const yearMatch = book.publishedDate.match(/\d{4}/);
+          if (yearMatch) {
+            document.getElementById('yearpublished').value = yearMatch[0];
+            document.getElementById('datepublished').value = book.publishedDate;
+          }
         }
-        if (book.subjects && book.subjects.length) {
-          document.getElementById('genre').value = book.subjects[0].name || '';
+        if (book.categories && book.categories.length) {
+          document.getElementById('genre').value = book.categories[0];
         }
         document.getElementById('goodreads').value = `https://www.goodreads.com/book/isbn/${isbn}`;
-        status.textContent = '✓ Auto-filled from Open Library!';
+        status.textContent = '✓ Auto-filled from Google Books!';
         status.style.color = '#5c6b50';
       }
     } catch(e) {
