@@ -60,7 +60,6 @@ function generateChart(data, label, title, elementId) {
 
 const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 const coverCache = {};
-const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 
 async function getGoogleBooksCover(isbn) {
   if (!isbn) return null;
@@ -71,7 +70,6 @@ async function getGoogleBooksCover(isbn) {
     if (data.items && data.items.length) {
       const volumeId = data.items[0].id;
       if (volumeId) {
-        // Build cover URL directly from volume ID — avoids http/https and edge=curl issues
         const url = `https://books.google.com/books/content?id=${volumeId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
         coverCache[isbn] = url;
         return url;
