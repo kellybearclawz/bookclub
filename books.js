@@ -1,188 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Book Club</title>
-  <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+// ─── Cover fetching via Google Dynamic Links API ──────────────────────────────
+// Splits ISBNs into batches of 20 to stay within URL length limits.
+// Each batch uses a unique callback name to avoid collisions.
 
-  <nav>
-    <a href="index.html" class="nav-brand">📖 Book Club</a>
-    <div class="nav-links">
-      <a href="index.html" class="active">Home</a>
-      <a href="books.html">Books</a>
-      <a href="stats.html">Stats</a>
-    </div>
-  </nav>
+const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 
-  <main>
-    <section id="next-meeting">
-      <h1 id="meeting-heading" class="loading">Loading…</h1>
-      <p id="meeting-book" class="loading"></p>
-      <p id="meeting-meta" class="meeting-meta"></p>
-    </section>
+function fetchCoverBatch(isbns) {
+  return new Promise((resolve) => {
+    const result = {};
+    if (!isbns.length) { resolve(result); return; }
 
-    <section id="book-summary">
-      <h2>About This Book</h2>
-      <div class="book-card-hero">
-        <img class="book-cover-hero" id="book-cover" src="" alt="Book cover" />
-        <div>
-          <div id="book-tags"></div>
-          <p id="book-description" class="loading">Loading book details…</p>
-          <p id="book-publishmeta" class="book-meta-text"></p>
-          <a class="btn" id="goodreads-link" href="#" target="_blank" rel="noopener">View on Goodreads</a>
-        </div>
-      </div>
-    </section>
-  </main>
+    const cbName = '__gbcb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const bibkeys = isbns.map(i => 'ISBN:' + i).join(',');
+    const timeout = setTimeout(() => { delete window[cbName]; resolve(result); }, 8000);
 
-  <footer>
-    <p>&copy; 2026 Book Club</p>
-  </footer>
-
-  <script>
-    // ─── ONLY EDIT THIS SECTION EACH MONTH ────────────────────────────────────
-    const NEXT_MEETING = {
-      date:     "April 16, 2026",
-      host:     "Kelly",
-      location: "Kelly's house",
+    window[cbName] = function(data) {
+      clearTimeout(timeout);
+      for (var key in data) {
+        var isbn = key.replace('ISBN:', '');
+        if (data[key].thumbnail_url) {
+          result[isbn] = data[key].thumbnail_url.replace('http://', 'https://');
+        }
+      }
+      delete window[cbName];
+      resolve(result);
     };
-    // ──────────────────────────────────────────────────────────────────────────
 
-    const CSV_URL = "https://raw.githubusercontent.com/kellybearclawz/bookclub/main/Book%20Club%20-%20Books%20Read_ISBN.csv";
+    var script = document.createElement('script');
+    script.src = 'https://books.google.com/books?bibkeys=' + encodeURIComponent(bibkeys) + '&jscmd=viewapi&callback=' + cbName;
+    script.onerror = function() { clearTimeout(timeout); resolve(result); };
+    document.head.appendChild(script);
+  });
+}
 
-    function parseCSV(text) {
-      const lines = text.trim().split('\n').filter(l => l.trim());
-      const headers = splitCSVRow(lines[0]);
-      return lines.slice(1).map(line => {
-        const vals = splitCSVRow(line);
-        const obj = {};
-        headers.forEach((h, i) => obj[h.trim()] = (vals[i] || '').trim());
-        return obj;
+async function fetchAllCovers(isbns) {
+  var unique = [];
+  isbns.forEach(function(i) { if (i && unique.indexOf(i) === -1) unique.push(i); });
+  var coverMap = {};
+  var batchSize = 20;
+  for (var i = 0; i < unique.length; i += batchSize) {
+    var batch = unique.slice(i, i + batchSize);
+    var result = await fetchCoverBatch(batch);
+    Object.assign(coverMap, result);
+  }
+  return coverMap;
+}
+
+// ─── Main render ─────────────────────────────────────────────────────────────
+
+async function renderBooks(data) {
+  var shelf = document.getElementById('bookshelf');
+
+  // Group books by year
+  var booksByYear = {};
+  data.forEach(function(book) {
+    var year = new Date(book['Meeting Date']).getFullYear();
+    if (!booksByYear[year]) booksByYear[year] = [];
+    booksByYear[year].push(book);
+  });
+
+  var years = Object.keys(booksByYear).sort().reverse();
+
+  // Year jump links
+  var yearLinksDiv = document.createElement('div');
+  yearLinksDiv.className = 'year-links';
+  yearLinksDiv.innerHTML = years.map(function(y) {
+    return '<a href="#year-' + y + '">' + y + '</a>';
+  }).join('');
+  shelf.appendChild(yearLinksDiv);
+
+  // Fetch all covers up front in batches
+  var allISBNs = data.map(function(b) {
+    return b.ISBN ? b.ISBN.replace(/[^0-9Xx]/g, '') : '';
+  }).filter(Boolean);
+  var coverMap = await fetchAllCovers(allISBNs);
+
+  // Render year sections
+  years.forEach(function(year) {
+    var section = document.createElement('section');
+    section.id = 'year-' + year;
+
+    var heading = document.createElement('h2');
+    heading.textContent = year;
+    section.appendChild(heading);
+
+    var bookContainer = document.createElement('div');
+    bookContainer.className = 'book-container';
+
+    var booksInYear = booksByYear[year].slice().reverse();
+    booksInYear.forEach(function(book, index) {
+      var isbn = book.ISBN ? book.ISBN.replace(/[^0-9Xx]/g, '') : '';
+      var coverUrl = (isbn && coverMap[isbn]) ? coverMap[isbn] : FALLBACK;
+
+      var bookDiv = document.createElement('div');
+      bookDiv.className = 'book-card fade-in';
+      bookDiv.style.animationDelay = (index * 0.06) + 's';
+
+      var img = document.createElement('img');
+      img.src = coverUrl;
+      img.alt = 'Cover of ' + book.Title;
+      img.onerror = function() { this.onerror = null; this.src = FALLBACK; };
+
+      var info = document.createElement('div');
+      var strong = document.createElement('strong');
+      strong.textContent = book.Title;
+      var details = document.createElement('p');
+      details.innerHTML = 'by ' + book.Author + '<br>Meeting: ' + book['Meeting Date'];
+      var linkP = document.createElement('p');
+      var a = document.createElement('a');
+      a.href = book['Goodreads URL'];
+      a.target = '_blank';
+      a.textContent = 'Goodreads ↗';
+      linkP.appendChild(a);
+      info.appendChild(strong);
+      info.appendChild(details);
+      info.appendChild(linkP);
+
+      bookDiv.appendChild(img);
+      bookDiv.appendChild(info);
+      bookContainer.appendChild(bookDiv);
+    });
+
+    section.appendChild(bookContainer);
+
+    var backToTop = document.createElement('div');
+    backToTop.className = 'back-to-top';
+    backToTop.innerHTML = '<a href="#top">↑ Back to top</a>';
+    section.appendChild(backToTop);
+
+    shelf.appendChild(section);
+  });
+
+  // Floating top button
+  var topLink = document.createElement('a');
+  topLink.href = '#top';
+  topLink.id = 'top-link';
+  topLink.textContent = '↑ Top';
+  document.body.appendChild(topLink);
+
+  window.addEventListener('scroll', function() {
+    topLink.classList.toggle('show', window.scrollY > 400);
+  });
+}
+
+// ─── Entry point ─────────────────────────────────────────────────────────────
+
+window.addEventListener('DOMContentLoaded', function() {
+  Papa.parse('Book Club - Books Read_ISBN.csv', {
+    download: true,
+    header: true,
+    complete: function(results) {
+      var clean = results.data.filter(function(b) {
+        return b['Title'] && b['Meeting Date'];
       });
+      renderBooks(clean);
     }
-
-    function splitCSVRow(row) {
-      const result = [];
-      let cur = '', inQuotes = false;
-      for (let i = 0; i < row.length; i++) {
-        const ch = row[i];
-        if (ch === '"') {
-          if (inQuotes && row[i+1] === '"') { cur += '"'; i++; }
-          else inQuotes = !inQuotes;
-        } else if (ch === ',' && !inQuotes) {
-          result.push(cur); cur = '';
-        } else { cur += ch; }
-      }
-      result.push(cur);
-      return result;
-    }
-
-    // Cover via Google Dynamic Links — no quota issues
-    function fetchCoverByISBN(isbn) {
-      return new Promise((resolve) => {
-        const cbName = `__gbcb_${Date.now()}`;
-        const timeout = setTimeout(() => { delete window[cbName]; resolve(null); }, 5000);
-        window[cbName] = function(data) {
-          clearTimeout(timeout);
-          const key = `ISBN:${isbn}`;
-          const url = data[key] && data[key].thumbnail_url
-            ? data[key].thumbnail_url.replace('http://', 'https://')
-            : null;
-          delete window[cbName];
-          resolve(url);
-        };
-        const script = document.createElement('script');
-        script.src = `https://books.google.com/books?bibkeys=ISBN:${isbn}&jscmd=viewapi&callback=${cbName}`;
-        script.onerror = () => { clearTimeout(timeout); resolve(null); };
-        document.head.appendChild(script);
-      });
-    }
-
-    // Fetch description/publish info from Google Books REST API
-    async function fetchGoogleBooks(isbn) {
-      try {
-        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
-        const data = await res.json();
-        if (data.items && data.items.length) return data.items[0].volumeInfo || null;
-      } catch {}
-      return null;
-    }
-
-    async function init() {
-      document.getElementById('meeting-heading').textContent = `Next Meeting: ${NEXT_MEETING.date}`;
-      document.getElementById('meeting-heading').classList.remove('loading');
-
-      let book;
-      try {
-        const res = await fetch(CSV_URL);
-        const text = await res.text();
-        const rows = parseCSV(text);
-        book = rows[rows.length - 1];
-      } catch {
-        document.getElementById('meeting-book').textContent = 'Could not load book data.';
-        return;
-      }
-
-      const isbn         = book['ISBN'] || '';
-      const title        = book['Title'] || 'Unknown Title';
-      const author       = book['Author'] || '';
-      const genre        = book['Genre'] || '';
-      const subgenre     = book['Sub-Genre'] || '';
-      const goodreadsUrl = book['Goodreads URL'] || `https://www.goodreads.com/book/isbn/${isbn}`;
-
-      document.getElementById('meeting-book').innerHTML = `Current Book: <em>${title}</em> by ${author}`;
-      document.getElementById('meeting-book').classList.remove('loading');
-
-      const metaParts = [];
-      if (NEXT_MEETING.host)     metaParts.push(`Hosted by ${NEXT_MEETING.host}`);
-      if (NEXT_MEETING.location) metaParts.push(NEXT_MEETING.location);
-      document.getElementById('meeting-meta').textContent = metaParts.join(' · ');
-
-      [genre, subgenre].filter(Boolean).forEach(t => {
-        const span = document.createElement('span');
-        span.className = 'tag';
-        span.textContent = t;
-        document.getElementById('book-tags').appendChild(span);
-      });
-
-      document.getElementById('goodreads-link').href = goodreadsUrl;
-
-      if (isbn) {
-        const gbData = await fetchGoogleBooks(isbn);
-        const coverEl = document.getElementById('book-cover');
-        // Fetch cover and book info in parallel
-        const [coverUrl] = await Promise.all([
-          fetchCoverByISBN(isbn),
-        ]);
-        if (coverUrl) {
-          coverEl.src = coverUrl;
-        } else if (gbData && gbData.imageLinks) {
-          coverEl.src = (gbData.imageLinks.thumbnail || gbData.imageLinks.smallThumbnail || '')
-            .replace('http://', 'https://');
-        }
-        coverEl.alt = title;
-
-        if (gbData && gbData.publishedDate) {
-          const pub = gbData.publisher ? ' · ' + gbData.publisher : '';
-          document.getElementById('book-publishmeta').textContent = `Published ${gbData.publishedDate}${pub}`;
-        }
-
-        const descEl = document.getElementById('book-description');
-        descEl.textContent = (gbData && gbData.description)
-          ? gbData.description
-          : 'No description available. View on Goodreads for more details.';
-        descEl.classList.remove('loading');
-      } else {
-        document.getElementById('book-description').textContent = 'No ISBN on file — view on Goodreads for details.';
-        document.getElementById('book-description').classList.remove('loading');
-      }
-    }
-
-    init();
-  </script>
-</body>
-</html>
+  });
+});
