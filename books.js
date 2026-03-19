@@ -81,27 +81,28 @@
       return result;
     }
 
-    // Fetch cover via Google Dynamic Links (batch-friendly, no quota issues)
+    // Cover via Google Dynamic Links — no quota issues
     function fetchCoverByISBN(isbn) {
       return new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve(null), 5000);
-        window.__gbcb_idx = function(data) {
+        const cbName = `__gbcb_${Date.now()}`;
+        const timeout = setTimeout(() => { delete window[cbName]; resolve(null); }, 5000);
+        window[cbName] = function(data) {
           clearTimeout(timeout);
           const key = `ISBN:${isbn}`;
           const url = data[key] && data[key].thumbnail_url
             ? data[key].thumbnail_url.replace('http://', 'https://')
             : null;
-          delete window.__gbcb_idx;
+          delete window[cbName];
           resolve(url);
         };
         const script = document.createElement('script');
-        script.src = `https://books.google.com/books?bibkeys=ISBN:${isbn}&jscmd=viewapi&callback=__gbcb_idx`;
+        script.src = `https://books.google.com/books?bibkeys=ISBN:${isbn}&jscmd=viewapi&callback=${cbName}`;
         script.onerror = () => { clearTimeout(timeout); resolve(null); };
         document.head.appendChild(script);
       });
     }
 
-    // Still fetch description/publish info from Google Books REST API
+    // Fetch description/publish info from Google Books REST API
     async function fetchGoogleBooks(isbn) {
       try {
         const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
@@ -153,7 +154,10 @@
       if (isbn) {
         const gbData = await fetchGoogleBooks(isbn);
         const coverEl = document.getElementById('book-cover');
-        const coverUrl = await fetchCoverByISBN(isbn);
+        // Fetch cover and book info in parallel
+        const [coverUrl] = await Promise.all([
+          fetchCoverByISBN(isbn),
+        ]);
         if (coverUrl) {
           coverEl.src = coverUrl;
         } else if (gbData && gbData.imageLinks) {
