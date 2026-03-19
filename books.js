@@ -3,9 +3,31 @@ function getMeetingYear(dateString) {
   return date.getFullYear();
 }
 
-function cleanISBN(isbn) {
-  return isbn?.replace(/[^0-9Xx]/g, '');
+// Cache so we don't re-fetch the same ISBN twice across the page
+const coverCache = {};
+
+async function getGoogleBooksCover(isbn) {
+  if (!isbn) return null;
+  if (coverCache[isbn]) return coverCache[isbn];
+  try {
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const data = await res.json();
+    if (data.items && data.items.length) {
+      const links = data.items[0].volumeInfo.imageLinks;
+      if (links) {
+        // Prefer the largest available, bump zoom for a crisper image
+        const url = (links.thumbnail || links.smallThumbnail || '')
+          .replace('zoom=1', 'zoom=2')
+          .replace('http://', 'https://');
+        coverCache[isbn] = url;
+        return url;
+      }
+    }
+  } catch {}
+  return null;
 }
+
+const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 
 async function renderBooks(data) {
   const shelf = document.getElementById('bookshelf');
@@ -14,20 +36,18 @@ async function renderBooks(data) {
   const booksByYear = {};
   for (const book of data) {
     const year = getMeetingYear(book['Meeting Date']);
-    if (!booksByYear[year]) {
-      booksByYear[year] = [];
-    }
+    if (!booksByYear[year]) booksByYear[year] = [];
     booksByYear[year].push(book);
   }
 
-  // Create jump links
+  // Year jump links
   const years = Object.keys(booksByYear).sort().reverse();
   const yearLinksDiv = document.createElement('div');
   yearLinksDiv.className = 'year-links';
   yearLinksDiv.innerHTML = years.map(y => `<a href="#year-${y}">${y}</a>`).join(' | ');
   shelf.appendChild(yearLinksDiv);
 
-  // Render each year's section
+  // Render each year section — build DOM first, then fill covers async
   for (const year of years) {
     const section = document.createElement('section');
     section.id = `year-${year}`;
@@ -36,19 +56,21 @@ async function renderBooks(data) {
     const bookContainer = document.createElement('div');
     bookContainer.className = 'book-container';
 
-    booksByYear[year].reverse().forEach((book, index) => {
-      //const isbn = cleanISBN(book.ISBN);
-      const isbn = book.ISBN?.replace(/[^0-9Xx]/g, ''); // Clean up the ISBN just in case
-      const coverUrl = isbn
-        ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
-        : 'https://kellybearclawz.github.io//bookclub/default-cover.jpg';
+    const booksInYear = [...booksByYear[year]].reverse();
 
+    // Create all cards immediately so layout is stable
+    const coverFetches = booksInYear.map((book, index) => {
+      const isbn = book.ISBN?.replace(/[^0-9Xx]/g, '');
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book-card fade-in';
       bookDiv.style.animationDelay = `${index * 0.1}s`;
 
+      const img = document.createElement('img');
+      img.src = FALLBACK;
+      img.alt = `Cover of ${book.Title}`;
+      img.onerror = () => { img.onerror = null; img.src = FALLBACK; };
+
       bookDiv.innerHTML = `
-        <img src="${coverUrl}" alt="Cover of ${book.Title}" onerror="this.onerror=null;this.src='https://kellybearclawz.github.io//bookclub/default-cover.jpg';" />
         <div>
           <p><strong>${book.Title}</strong><br>
           by ${book.Author}<br>
@@ -56,21 +78,28 @@ async function renderBooks(data) {
           <p><a href="${book['Goodreads URL']}" target="_blank">Goodreads Link</a></p>
         </div>
       `;
+      bookDiv.prepend(img);
       bookContainer.appendChild(bookDiv);
+
+      // Return a promise that fills the cover when ready
+      return isbn
+        ? getGoogleBooksCover(isbn).then(url => { if (url) img.src = url; })
+        : Promise.resolve();
     });
 
     section.appendChild(bookContainer);
 
-    // Add "Back to Top" link under each section
     const backToTop = document.createElement('div');
     backToTop.className = 'back-to-top';
     backToTop.innerHTML = `<a href="#top">↑ Back to Top ↑</a>`;
     section.appendChild(backToTop);
 
     shelf.appendChild(section);
+
+    // Fetch all covers for this year in parallel
+    await Promise.all(coverFetches);
   }
 
-  // Add one last back to top link
   const topLink = document.createElement('div');
   topLink.innerHTML = `<a href="#top" id="top-link">↑ Back to Top ↑</a>`;
   shelf.appendChild(topLink);
