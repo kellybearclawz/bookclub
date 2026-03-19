@@ -105,7 +105,7 @@
     // ─── ONLY EDIT THIS SECTION EACH MONTH ────────────────────────────────────
     const NEXT_MEETING = {
       date:     "April 15, 2026",   // e.g. "April 16, 2026"
-      host:     "Tessa",            // e.g. "Kelly"
+      host:     "Tessa ",            // e.g. "Kelly"
       location: "Tessa's house",    // e.g. "Kelly's house"
     };
     // ──────────────────────────────────────────────────────────────────────────
@@ -141,28 +141,12 @@
       return result;
     }
 
-    async function fetchOpenLibrary(isbn) {
+    async function fetchGoogleBooks(isbn) {
       try {
-        const res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
         const data = await res.json();
-        return data[`ISBN:${isbn}`] || null;
-      } catch { return null; }
-    }
-
-    async function fetchOpenLibraryWork(isbn) {
-      // Get description from the works endpoint
-      try {
-        const res = await fetch(`https://openlibrary.org/isbn/${isbn}.json`);
-        const edition = await res.json();
-        if (edition.works && edition.works.length) {
-          const workKey = edition.works[0].key;
-          const wRes = await fetch(`https://openlibrary.org${workKey}.json`);
-          const work = await wRes.json();
-          if (work.description) {
-            return typeof work.description === 'string'
-              ? work.description
-              : work.description.value || '';
-          }
+        if (data.items && data.items.length) {
+          return data.items[0].volumeInfo || null;
         }
       } catch {}
       return null;
@@ -216,36 +200,30 @@
       const link = document.getElementById('goodreads-link');
       link.href = goodreadsUrl;
 
-      // Fetch cover + description from Open Library
+      // Fetch cover + description from Google Books
       if (isbn) {
-        const [olData, description] = await Promise.all([
-          fetchOpenLibrary(isbn),
-          fetchOpenLibraryWork(isbn)
-        ]);
+        const gbData = await fetchGoogleBooks(isbn);
 
-        // Cover image
+        // Cover image — prefer Google Books thumbnail, zoom to larger size
         const coverEl = document.getElementById('book-cover');
-        if (olData && olData.cover && olData.cover.large) {
-          coverEl.src = olData.cover.large;
-        } else {
-          // Fallback to Open Library cover API directly
-          coverEl.src = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+        if (gbData && gbData.imageLinks) {
+          const thumb = gbData.imageLinks.thumbnail || gbData.imageLinks.smallThumbnail || '';
+          // Google Books thumbnails can be bumped to larger size by swapping zoom param
+          coverEl.src = thumb.replace('zoom=1', 'zoom=2').replace('http://', 'https://');
         }
         coverEl.alt = title;
 
         // Publish info
-        if (olData && olData.publish_date) {
-          const publishers = olData.publishers ? olData.publishers.map(p => p.name).join(', ') : '';
+        const descEl = document.getElementById('book-description');
+        if (gbData && gbData.publishedDate) {
+          const publisher = gbData.publisher ? ' • ' + gbData.publisher : '';
           document.getElementById('book-publishmeta').textContent =
-            `Published ${olData.publish_date}${publishers ? ' • ' + publishers : ''}`;
+            `Published ${gbData.publishedDate}${publisher}`;
         }
 
         // Description
-        const descEl = document.getElementById('book-description');
-        if (description) {
-          descEl.textContent = description;
-        } else if (olData && olData.excerpts && olData.excerpts.length) {
-          descEl.textContent = olData.excerpts[0].text;
+        if (gbData && gbData.description) {
+          descEl.textContent = gbData.description;
         } else {
           descEl.textContent = 'No description available. View on Goodreads for more details.';
         }
