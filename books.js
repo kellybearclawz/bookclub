@@ -8,21 +8,21 @@ const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 
 async function getGoogleBooksCover(isbn) {
   if (!isbn) return null;
-  if (coverCache[isbn]) return coverCache[isbn];
+  if (coverCache[isbn] !== undefined) return coverCache[isbn];
   try {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
     const data = await res.json();
     if (data.items && data.items.length) {
-      const links = data.items[0].volumeInfo.imageLinks;
-      if (links) {
-        const url = (links.thumbnail || links.smallThumbnail || '')
-          .replace('zoom=1', 'zoom=2')
-          .replace('http://', 'https://');
+      const volumeId = data.items[0].id;
+      if (volumeId) {
+        // Build cover URL directly from volume ID — avoids http/https and edge=curl issues
+        const url = `https://books.google.com/books/content?id=${volumeId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
         coverCache[isbn] = url;
         return url;
       }
     }
   } catch {}
+  coverCache[isbn] = null;
   return null;
 }
 
