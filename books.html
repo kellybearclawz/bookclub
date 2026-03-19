@@ -2,30 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Book Club</title>
-  <!-- Specify the favicon location -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Books We've Read — Book Club</title>
   <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body id="top">
- <nav>
-    <a href="index.html">Home</a> |
-    <a href="books.html">Books</a> |
-    <a href="stats.html">Stats</a>
-    <!--<a href="about.html">About</a>-->
-  </nav>
-<main> 
-  <h1>Books We've Read</h1>
-  <div id="year-links" class="year-links"></div>
-  <div id="bookshelf" style="padding: 1rem;"></div>
-</main>
 
- 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="books.js"></script>
+  <nav>
+    <a href="index.html" class="nav-brand">📖 Book Club</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="books.html" class="active">Books</a>
+      <a href="stats.html">Stats</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1>Books We've Read</h1>
+    <div id="bookshelf"></div>
+  </main>
 
   <footer>
     <p>&copy; 2026 Book Club</p>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="books.js"></script>
 </body>
 </html>
