@@ -7,7 +7,6 @@
   <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* Optional soft styling if your CSS doesn’t already cover it */
     :root {
       --cream: #fff9f3;
       --rose: #d9a7a0;
@@ -45,25 +44,27 @@
       margin: .25rem 0 .75rem;
     }
     .tag {
-      display:inline-block; 
-      background: var(--rose); 
-      color:#fff; 
-      padding:.2rem .55rem; 
-      border-radius:999px; 
-      font-size:.8rem; 
-      margin-right:.4rem
+      display: inline-block;
+      background: var(--rose);
+      color: #fff;
+      padding: .2rem .55rem;
+      border-radius: 999px;
+      font-size: .8rem;
+      margin-right: .4rem;
     }
     .btn {
-      display:inline-block; 
-      margin-top: .75rem; 
-      padding:.6rem 1rem; 
-      background: var(--rose); 
-      color:#fff; 
-      border-radius:999px; 
-      text-decoration:none
+      display: inline-block;
+      margin-top: .75rem;
+      padding: .6rem 1rem;
+      background: var(--rose);
+      color: #fff;
+      border-radius: 999px;
+      text-decoration: none;
     }
-    .btn:hover { opacity:.9; }
+    .btn:hover { opacity: .9; }
     p { line-height: 1.6; color: var(--ink); }
+    .loading { color: #aaa; font-style: italic; }
+    .meeting-meta { font-size: .9rem; color: #7a5c5c; margin-top: .4rem; }
   </style>
 </head>
 <body>
@@ -72,49 +73,191 @@
       <a href="index.html">Home</a> |
       <a href="books.html">Books</a> |
       <a href="stats.html">Stats</a>
-      <!-- <a href="about.html">About</a> -->
     </nav>
   </header>
 
   <main>
     <section id="next-meeting">
-      <h1>Next Meeting: March 18, 2026</h1>
-      <p>Current Book: <em>Call of the Camino</em> by Suzanne Redfearn</p>
-      <div class="meta">
-        <span class="tag">Fiction</span>
-        <span class="tag">Travel</span>
-        <span class="tag">Book Club</span>
-      </div>
+      <h1 id="meeting-heading" class="loading">Loading…</h1>
+      <p id="meeting-book" class="loading"></p>
+      <p id="meeting-meta" class="meeting-meta"></p>
     </section>
 
     <section id="book-summary">
-      <h2>Goodreads Summary</h2>
+      <h2>About This Book</h2>
       <div class="book-card">
-        <!-- If you have a local cover asset, replace with /images/gone-before-goodbye.jpg -->
-        <img class="book-cover" src="https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1745474761i/228352159.jpg" alt="Call of the Camino" />
+        <img class="book-cover" id="book-cover" src="" alt="Book cover" />
         <div>
-          <p>
-          From the bestselling author of In an Instant comes a deeply moving novel following the transformative journeys of two women walking entwined paths on a legendary route across Europe a generation apart.
-
-Reina Watkins lost her father when she was eight. Seventeen years later, she still carries that grief. When her budding journalism career takes an unexpected turn, it leads her to the ancient five-hundred-mile Camino de Santiago in Spain. Now she finds herself embarking on the same pilgrimage that her father made at her age, unaware of how profoundly it will change her.
-
-Back in 1997, Isabelle Vidal is a teenager on the run. Fleeing from her boarding school, she heads straight for the Way of Saint James. She’s heard the Camino will provide. And so it does, in the form of a handsome young American and the promise of a new life. But it could all fall apart if her troubles catch up with her.
-
-One woman is coming to grips with her past; the other is grasping for her future. But as each treads the same hallowed trail, it will knot their destinies together in a most miraculous way.
-          </p>
-          <p class="meta">Published October 1, 2025 • Lake Union Publishing</p>
-          <a class="btn" href="https://www.goodreads.com/book/show/228352159-call-of-the-camino" target="_blank" rel="noopener">View on Goodreads</a>
+          <div id="book-tags"></div>
+          <p id="book-description" class="loading">Loading book details…</p>
+          <p id="book-publishmeta" class="meta"></p>
+          <a class="btn" id="goodreads-link" href="#" target="_blank" rel="noopener">View on Goodreads</a>
         </div>
       </div>
-    </section>
-
-    <section id="book-trailer">
-      <!-- Optional: embed later if an official trailer appears -->
     </section>
   </main>
 
   <footer>
     <p>&copy; 2026 Book Club</p>
   </footer>
+
+  <script>
+    // ─── ONLY EDIT THIS SECTION EACH MONTH ────────────────────────────────────
+    const NEXT_MEETING = {
+      date:     "April 16, 2026",   // e.g. "April 16, 2026"
+      host:     "Kelly",            // e.g. "Kelly"
+      location: "Kelly's house",    // e.g. "Kelly's house"
+    };
+    // ──────────────────────────────────────────────────────────────────────────
+
+    const CSV_URL = "https://raw.githubusercontent.com/kellybearclawz/bookclub/main/Book%20Club%20-%20Books%20Read_ISBN.csv";
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n').filter(l => l.trim());
+      const headers = splitCSVRow(lines[0]);
+      return lines.slice(1).map(line => {
+        const vals = splitCSVRow(line);
+        const obj = {};
+        headers.forEach((h, i) => obj[h.trim()] = (vals[i] || '').trim());
+        return obj;
+      });
+    }
+
+    function splitCSVRow(row) {
+      const result = [];
+      let cur = '', inQuotes = false;
+      for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === '"') {
+          if (inQuotes && row[i+1] === '"') { cur += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          result.push(cur); cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      result.push(cur);
+      return result;
+    }
+
+    async function fetchOpenLibrary(isbn) {
+      try {
+        const res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+        const data = await res.json();
+        return data[`ISBN:${isbn}`] || null;
+      } catch { return null; }
+    }
+
+    async function fetchOpenLibraryWork(isbn) {
+      // Get description from the works endpoint
+      try {
+        const res = await fetch(`https://openlibrary.org/isbn/${isbn}.json`);
+        const edition = await res.json();
+        if (edition.works && edition.works.length) {
+          const workKey = edition.works[0].key;
+          const wRes = await fetch(`https://openlibrary.org${workKey}.json`);
+          const work = await wRes.json();
+          if (work.description) {
+            return typeof work.description === 'string'
+              ? work.description
+              : work.description.value || '';
+          }
+        }
+      } catch {}
+      return null;
+    }
+
+    async function init() {
+      // Populate meeting info immediately from config
+      document.getElementById('meeting-heading').textContent =
+        `Next Meeting: ${NEXT_MEETING.date}`;
+      document.getElementById('meeting-heading').classList.remove('loading');
+
+      // Fetch CSV
+      let book;
+      try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
+        const rows = parseCSV(text);
+        book = rows[rows.length - 1]; // last row = current book
+      } catch(e) {
+        document.getElementById('meeting-book').textContent = 'Could not load book data.';
+        return;
+      }
+
+      const isbn = book['ISBN'] || '';
+      const title = book['Title'] || 'Unknown Title';
+      const author = book['Author'] || '';
+      const genre = book['Genre'] || '';
+      const subgenre = book['Sub-Genre'] || '';
+      const goodreadsUrl = book['Goodreads URL'] || `https://www.goodreads.com/book/isbn/${isbn}`;
+
+      // Meeting section
+      document.getElementById('meeting-book').innerHTML =
+        `Current Book: <em>${title}</em> by ${author}`;
+      document.getElementById('meeting-book').classList.remove('loading');
+
+      const metaParts = [];
+      if (NEXT_MEETING.host) metaParts.push(`Hosted by ${NEXT_MEETING.host}`);
+      if (NEXT_MEETING.location) metaParts.push(NEXT_MEETING.location);
+      document.getElementById('meeting-meta').textContent = metaParts.join(' · ');
+
+      // Tags
+      const tagContainer = document.getElementById('book-tags');
+      [genre, subgenre].filter(Boolean).forEach(t => {
+        const span = document.createElement('span');
+        span.className = 'tag';
+        span.textContent = t;
+        tagContainer.appendChild(span);
+      });
+
+      // Goodreads link
+      const link = document.getElementById('goodreads-link');
+      link.href = goodreadsUrl;
+
+      // Fetch cover + description from Open Library
+      if (isbn) {
+        const [olData, description] = await Promise.all([
+          fetchOpenLibrary(isbn),
+          fetchOpenLibraryWork(isbn)
+        ]);
+
+        // Cover image
+        const coverEl = document.getElementById('book-cover');
+        if (olData && olData.cover && olData.cover.large) {
+          coverEl.src = olData.cover.large;
+        } else {
+          // Fallback to Open Library cover API directly
+          coverEl.src = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+        }
+        coverEl.alt = title;
+
+        // Publish info
+        if (olData && olData.publish_date) {
+          const publishers = olData.publishers ? olData.publishers.map(p => p.name).join(', ') : '';
+          document.getElementById('book-publishmeta').textContent =
+            `Published ${olData.publish_date}${publishers ? ' • ' + publishers : ''}`;
+        }
+
+        // Description
+        const descEl = document.getElementById('book-description');
+        if (description) {
+          descEl.textContent = description;
+        } else if (olData && olData.excerpts && olData.excerpts.length) {
+          descEl.textContent = olData.excerpts[0].text;
+        } else {
+          descEl.textContent = 'No description available. View on Goodreads for more details.';
+        }
+        descEl.classList.remove('loading');
+      } else {
+        document.getElementById('book-description').textContent =
+          'No ISBN on file — view on Goodreads for details.';
+        document.getElementById('book-description').classList.remove('loading');
+      }
+    }
+
+    init();
+  </script>
 </body>
 </html>
