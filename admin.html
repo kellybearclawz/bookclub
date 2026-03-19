@@ -553,7 +553,7 @@
     status.style.color = '#9a8a72';
 
     try {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
       const data = await res.json();
       if (!data.items || !data.items.length) {
         status.textContent = 'Book not found. Fill in manually.';

@@ -1,37 +1,42 @@
-<!-- stats.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    <script src="stats.js"></script>
-    
-  <title>Book Club Stats</title>
-    
-  <!-- Specify the favicon location -->
+  <title>Stats — Book Club</title>
   <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
-  <link rel="stylesheet" href="style.css" />   
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
+
   <nav>
-    <a href="index.html">Home</a> |
-    <a href="books.html">Books</a> |
-    <a href="stats.html">Stats</a>
-    <!--<a href="about.html">About</a>-->
+    <a href="index.html" class="nav-brand">📖 Book Club</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="books.html">Books</a>
+      <a href="stats.html" class="active">Stats</a>
+    </div>
   </nav>
-  
+
   <main>
     <h1>Sub-Genre Breakdown</h1>
     <div class="chart-container">
       <canvas id="subgenreChart"></canvas>
     </div>
-    <h1>Book Breakdown</h1>
-    <div id="books-container"></div>
 
+    <h1>Book Breakdown</h1>
+    <p style="text-align:center; color: var(--ink-light); font-style: italic; margin-bottom: 1rem;">
+      Click a slice in the chart above to see books by sub-genre.
+    </p>
+    <div id="books-container"></div>
   </main>
-  
+
+  <footer>
+    <p>&copy; 2026 Book Club</p>
+  </footer>
+
+  <script src="stats.js"></script>
 </body>
 </html>

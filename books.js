@@ -3,8 +3,8 @@ function getMeetingYear(dateString) {
   return date.getFullYear();
 }
 
-// Cache so we don't re-fetch the same ISBN twice across the page
 const coverCache = {};
+const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 
 async function getGoogleBooksCover(isbn) {
   if (!isbn) return null;
@@ -15,7 +15,6 @@ async function getGoogleBooksCover(isbn) {
     if (data.items && data.items.length) {
       const links = data.items[0].volumeInfo.imageLinks;
       if (links) {
-        // Prefer the largest available, bump zoom for a crisper image
         const url = (links.thumbnail || links.smallThumbnail || '')
           .replace('zoom=1', 'zoom=2')
           .replace('http://', 'https://');
@@ -27,12 +26,9 @@ async function getGoogleBooksCover(isbn) {
   return null;
 }
 
-const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
-
 async function renderBooks(data) {
   const shelf = document.getElementById('bookshelf');
 
-  // Group books by meeting year
   const booksByYear = {};
   for (const book of data) {
     const year = getMeetingYear(book['Meeting Date']);
@@ -40,14 +36,14 @@ async function renderBooks(data) {
     booksByYear[year].push(book);
   }
 
-  // Year jump links
   const years = Object.keys(booksByYear).sort().reverse();
+
+  // Year jump links
   const yearLinksDiv = document.createElement('div');
   yearLinksDiv.className = 'year-links';
-  yearLinksDiv.innerHTML = years.map(y => `<a href="#year-${y}">${y}</a>`).join(' | ');
+  yearLinksDiv.innerHTML = years.map(y => `<a href="#year-${y}">${y}</a>`).join('');
   shelf.appendChild(yearLinksDiv);
 
-  // Render each year section — build DOM first, then fill covers async
   for (const year of years) {
     const section = document.createElement('section');
     section.id = `year-${year}`;
@@ -58,30 +54,30 @@ async function renderBooks(data) {
 
     const booksInYear = [...booksByYear[year]].reverse();
 
-    // Create all cards immediately so layout is stable
     const coverFetches = booksInYear.map((book, index) => {
       const isbn = book.ISBN?.replace(/[^0-9Xx]/g, '');
+
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book-card fade-in';
-      bookDiv.style.animationDelay = `${index * 0.1}s`;
+      bookDiv.style.animationDelay = `${index * 0.08}s`;
 
       const img = document.createElement('img');
       img.src = FALLBACK;
       img.alt = `Cover of ${book.Title}`;
       img.onerror = () => { img.onerror = null; img.src = FALLBACK; };
 
-      bookDiv.innerHTML = `
-        <div>
-          <p><strong>${book.Title}</strong><br>
-          by ${book.Author}<br>
-          Meeting: ${book['Meeting Date']}</p>
-          <p><a href="${book['Goodreads URL']}" target="_blank">Goodreads Link</a></p>
-        </div>
+      const info = document.createElement('div');
+      info.innerHTML = `
+        <strong>${book.Title}</strong>
+        <p>by ${book.Author}<br>
+        Meeting: ${book['Meeting Date']}</p>
+        <p><a href="${book['Goodreads URL']}" target="_blank">Goodreads ↗</a></p>
       `;
-      bookDiv.prepend(img);
+
+      bookDiv.appendChild(img);
+      bookDiv.appendChild(info);
       bookContainer.appendChild(bookDiv);
 
-      // Return a promise that fills the cover when ready
       return isbn
         ? getGoogleBooksCover(isbn).then(url => { if (url) img.src = url; })
         : Promise.resolve();
@@ -91,18 +87,23 @@ async function renderBooks(data) {
 
     const backToTop = document.createElement('div');
     backToTop.className = 'back-to-top';
-    backToTop.innerHTML = `<a href="#top">↑ Back to Top ↑</a>`;
+    backToTop.innerHTML = `<a href="#top">↑ Back to top</a>`;
     section.appendChild(backToTop);
 
     shelf.appendChild(section);
-
-    // Fetch all covers for this year in parallel
     await Promise.all(coverFetches);
   }
 
-  const topLink = document.createElement('div');
-  topLink.innerHTML = `<a href="#top" id="top-link">↑ Back to Top ↑</a>`;
-  shelf.appendChild(topLink);
+  // Floating back-to-top button
+  const topLink = document.createElement('a');
+  topLink.href = '#top';
+  topLink.id = 'top-link';
+  topLink.textContent = '↑ Top';
+  document.body.appendChild(topLink);
+
+  window.addEventListener('scroll', () => {
+    topLink.classList.toggle('show', window.scrollY > 400);
+  });
 }
 
 window.addEventListener('DOMContentLoaded', () => {

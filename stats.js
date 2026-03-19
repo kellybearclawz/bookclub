@@ -3,32 +3,31 @@ function stringToCozyColor(str) {
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const hue = hash % 360;
-  return `hsl(${hue}, 60%, 70%)`;
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 55%, 68%)`;
 }
 
 function generateChart(data, label, title, elementId) {
   const ctx = document.getElementById(elementId).getContext('2d');
   const counts = {};
-
   data.forEach(book => {
     const value = book[label] || 'Unknown';
     counts[value] = (counts[value] || 0) + 1;
   });
 
-  const labels = Object.keys(counts);
+  const labels = Object.keys(counts).sort();
   const backgroundColors = labels.map(l => stringToCozyColor(l));
 
   new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: labels,
+      labels,
       datasets: [{
         label: `${label} Distribution`,
-        data: Object.values(counts),
+        data: labels.map(l => counts[l]),
         backgroundColor: backgroundColors,
-        borderColor: '#ffffff',
-        borderWidth: 1
+        borderColor: '#fffdf9',
+        borderWidth: 2,
       }]
     },
     options: {
@@ -36,41 +35,50 @@ function generateChart(data, label, title, elementId) {
         title: {
           display: true,
           text: title,
-          font: { size: 20 }
+          font: { size: 18, family: "'Lora', Georgia, serif" },
+          color: '#5e3d1e',
+          padding: { bottom: 16 },
         },
         legend: {
           position: 'bottom',
+          labels: {
+            font: { size: 13 },
+            color: '#3a2a1a',
+            padding: 14,
+            usePointStyle: true,
+          },
           onClick: function(event, legendItem) {
             displayBooks(legendItem.text);
           }
         }
       },
       responsive: true,
-      maintainAspectRatio: false
+      maintainAspectRatio: false,
     }
   });
 }
 
 const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 const coverCache = {};
+const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 
 async function getGoogleBooksCover(isbn) {
   if (!isbn) return null;
-  if (coverCache[isbn]) return coverCache[isbn];
+  if (coverCache[isbn] !== undefined) return coverCache[isbn];
   try {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
     const data = await res.json();
     if (data.items && data.items.length) {
-      const links = data.items[0].volumeInfo.imageLinks;
-      if (links) {
-        const url = (links.thumbnail || links.smallThumbnail || '')
-          .replace('zoom=1', 'zoom=2')
-          .replace('http://', 'https://');
+      const volumeId = data.items[0].id;
+      if (volumeId) {
+        // Build cover URL directly from volume ID — avoids http/https and edge=curl issues
+        const url = `https://books.google.com/books/content?id=${volumeId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
         coverCache[isbn] = url;
         return url;
       }
     }
   } catch {}
+  coverCache[isbn] = null;
   return null;
 }
 
@@ -90,34 +98,35 @@ async function displayBooks(genre) {
       booksContainer.appendChild(subHeader);
 
       if (filteredBooks.length === 0) {
-        booksContainer.innerHTML += `<p>No books found in the sub-genre: ${genre}</p>`;
+        booksContainer.innerHTML += `<p style="text-align:center">No books found in: ${genre}</p>`;
         return;
       }
 
       const bookContainer = document.createElement('div');
       bookContainer.className = 'book-container';
 
-      // Build all cards first so layout is stable, then fill covers
       const coverFetches = filteredBooks.map((book, index) => {
         const isbn = book.ISBN?.replace(/[^0-9Xx]/g, '');
+
         const bookDiv = document.createElement('div');
         bookDiv.className = 'book-card fade-in';
-        bookDiv.style.animationDelay = `${index * 0.1}s`;
+        bookDiv.style.animationDelay = `${index * 0.08}s`;
 
         const img = document.createElement('img');
         img.src = FALLBACK;
         img.alt = `Cover of ${book.Title}`;
         img.onerror = () => { img.onerror = null; img.src = FALLBACK; };
 
-        bookDiv.innerHTML = `
-          <div>
-            <p><strong>${book.Title}</strong><br>
-            by ${book.Author}<br>
-            Meeting: ${book['Meeting Date']}</p>
-            <p><a href="${book['Goodreads URL']}" target="_blank">Goodreads Link</a></p>
-          </div>
+        const info = document.createElement('div');
+        info.innerHTML = `
+          <strong>${book.Title}</strong>
+          <p>by ${book.Author}<br>
+          Meeting: ${book['Meeting Date']}</p>
+          <p><a href="${book['Goodreads URL']}" target="_blank">Goodreads ↗</a></p>
         `;
-        bookDiv.prepend(img);
+
+        bookDiv.appendChild(img);
+        bookDiv.appendChild(info);
         bookContainer.appendChild(bookDiv);
 
         return isbn
@@ -126,8 +135,6 @@ async function displayBooks(genre) {
       });
 
       booksContainer.appendChild(bookContainer);
-
-      // Fetch all covers in parallel
       await Promise.all(coverFetches);
     }
   });

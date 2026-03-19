@@ -6,75 +6,17 @@
   <title>Book Club</title>
   <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
   <link rel="stylesheet" href="style.css" />
-  <style>
-    :root {
-      --cream: #fff9f3;
-      --rose: #d9a7a0;
-      --ink: #2b2b2b;
-    }
-    #next-meeting, #book-summary {
-      background: var(--cream);
-      border-radius: 16px;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
-      margin: 1rem auto;
-      max-width: 820px;
-    }
-    #next-meeting h1, #book-summary h2 {
-      margin-top: 0;
-      color: #7a5c5c;
-    }
-    .book-card {
-      display: grid;
-      grid-template-columns: 160px 1fr;
-      gap: 1rem;
-      align-items: start;
-    }
-    .book-cover {
-      width: 160px;
-      height: 240px;
-      border-radius: 8px;
-      object-fit: cover;
-      background: #eee;
-      border: 1px solid #f0e6e3;
-    }
-    .meta {
-      font-size: .95rem;
-      color: #5a4a4a;
-      margin: .25rem 0 .75rem;
-    }
-    .tag {
-      display: inline-block;
-      background: var(--rose);
-      color: #fff;
-      padding: .2rem .55rem;
-      border-radius: 999px;
-      font-size: .8rem;
-      margin-right: .4rem;
-    }
-    .btn {
-      display: inline-block;
-      margin-top: .75rem;
-      padding: .6rem 1rem;
-      background: var(--rose);
-      color: #fff;
-      border-radius: 999px;
-      text-decoration: none;
-    }
-    .btn:hover { opacity: .9; }
-    p { line-height: 1.6; color: var(--ink); }
-    .loading { color: #aaa; font-style: italic; }
-    .meeting-meta { font-size: .9rem; color: #7a5c5c; margin-top: .4rem; }
-  </style>
 </head>
 <body>
-  <header>
-    <nav>
-      <a href="index.html">Home</a> |
-      <a href="books.html">Books</a> |
+
+  <nav>
+    <a href="index.html" class="nav-brand">📖 Book Club</a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="books.html">Books</a>
       <a href="stats.html">Stats</a>
-    </nav>
-  </header>
+    </div>
+  </nav>
 
   <main>
     <section id="next-meeting">
@@ -85,12 +27,12 @@
 
     <section id="book-summary">
       <h2>About This Book</h2>
-      <div class="book-card">
-        <img class="book-cover" id="book-cover" src="" alt="Book cover" />
+      <div class="book-card-hero">
+        <img class="book-cover-hero" id="book-cover" src="" alt="Book cover" />
         <div>
           <div id="book-tags"></div>
           <p id="book-description" class="loading">Loading book details…</p>
-          <p id="book-publishmeta" class="meta"></p>
+          <p id="book-publishmeta" class="book-meta-text"></p>
           <a class="btn" id="goodreads-link" href="#" target="_blank" rel="noopener">View on Goodreads</a>
         </div>
       </div>
@@ -104,9 +46,9 @@
   <script>
     // ─── ONLY EDIT THIS SECTION EACH MONTH ────────────────────────────────────
     const NEXT_MEETING = {
-      date:     "April 15, 2026",   // e.g. "April 16, 2026"
-      host:     "Tessa ",            // e.g. "Kelly"
-      location: "Tessa's house",    // e.g. "Kelly's house"
+      date:     "April 16, 2026",
+      host:     "Kelly",
+      location: "Kelly's house",
     };
     // ──────────────────────────────────────────────────────────────────────────
 
@@ -133,9 +75,7 @@
           else inQuotes = !inQuotes;
         } else if (ch === ',' && !inQuotes) {
           result.push(cur); cur = '';
-        } else {
-          cur += ch;
-        }
+        } else { cur += ch; }
       }
       result.push(cur);
       return result;
@@ -143,94 +83,83 @@
 
     async function fetchGoogleBooks(isbn) {
       try {
-        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
         const data = await res.json();
         if (data.items && data.items.length) {
-          return data.items[0].volumeInfo || null;
+          const item = data.items[0];
+          // Attach a reliable cover URL built from the volume ID (avoids http/mixed-content issues)
+          if (item.id) {
+            item.volumeInfo._coverUrl =
+              `https://books.google.com/books/content?id=${item.id}&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
+          }
+          return item.volumeInfo || null;
         }
       } catch {}
       return null;
     }
 
     async function init() {
-      // Populate meeting info immediately from config
-      document.getElementById('meeting-heading').textContent =
-        `Next Meeting: ${NEXT_MEETING.date}`;
+      document.getElementById('meeting-heading').textContent = `Next Meeting: ${NEXT_MEETING.date}`;
       document.getElementById('meeting-heading').classList.remove('loading');
 
-      // Fetch CSV
       let book;
       try {
         const res = await fetch(CSV_URL);
         const text = await res.text();
         const rows = parseCSV(text);
-        book = rows[rows.length - 1]; // last row = current book
-      } catch(e) {
+        book = rows[rows.length - 1];
+      } catch {
         document.getElementById('meeting-book').textContent = 'Could not load book data.';
         return;
       }
 
-      const isbn = book['ISBN'] || '';
-      const title = book['Title'] || 'Unknown Title';
-      const author = book['Author'] || '';
-      const genre = book['Genre'] || '';
-      const subgenre = book['Sub-Genre'] || '';
+      const isbn         = book['ISBN'] || '';
+      const title        = book['Title'] || 'Unknown Title';
+      const author       = book['Author'] || '';
+      const genre        = book['Genre'] || '';
+      const subgenre     = book['Sub-Genre'] || '';
       const goodreadsUrl = book['Goodreads URL'] || `https://www.goodreads.com/book/isbn/${isbn}`;
 
-      // Meeting section
-      document.getElementById('meeting-book').innerHTML =
-        `Current Book: <em>${title}</em> by ${author}`;
+      document.getElementById('meeting-book').innerHTML = `Current Book: <em>${title}</em> by ${author}`;
       document.getElementById('meeting-book').classList.remove('loading');
 
       const metaParts = [];
-      if (NEXT_MEETING.host) metaParts.push(`Hosted by ${NEXT_MEETING.host}`);
+      if (NEXT_MEETING.host)     metaParts.push(`Hosted by ${NEXT_MEETING.host}`);
       if (NEXT_MEETING.location) metaParts.push(NEXT_MEETING.location);
       document.getElementById('meeting-meta').textContent = metaParts.join(' · ');
 
-      // Tags
-      const tagContainer = document.getElementById('book-tags');
       [genre, subgenre].filter(Boolean).forEach(t => {
         const span = document.createElement('span');
         span.className = 'tag';
         span.textContent = t;
-        tagContainer.appendChild(span);
+        document.getElementById('book-tags').appendChild(span);
       });
 
-      // Goodreads link
-      const link = document.getElementById('goodreads-link');
-      link.href = goodreadsUrl;
+      document.getElementById('goodreads-link').href = goodreadsUrl;
 
-      // Fetch cover + description from Google Books
       if (isbn) {
         const gbData = await fetchGoogleBooks(isbn);
-
-        // Cover image — prefer Google Books thumbnail, zoom to larger size
         const coverEl = document.getElementById('book-cover');
-        if (gbData && gbData.imageLinks) {
-          const thumb = gbData.imageLinks.thumbnail || gbData.imageLinks.smallThumbnail || '';
-          // Google Books thumbnails can be bumped to larger size by swapping zoom param
-          coverEl.src = thumb.replace('zoom=1', 'zoom=2').replace('http://', 'https://');
+        if (gbData && gbData._coverUrl) {
+          coverEl.src = gbData._coverUrl;
+        } else if (gbData && gbData.imageLinks) {
+          coverEl.src = (gbData.imageLinks.thumbnail || gbData.imageLinks.smallThumbnail || '')
+            .replace('http://', 'https://');
         }
         coverEl.alt = title;
 
-        // Publish info
-        const descEl = document.getElementById('book-description');
         if (gbData && gbData.publishedDate) {
-          const publisher = gbData.publisher ? ' • ' + gbData.publisher : '';
-          document.getElementById('book-publishmeta').textContent =
-            `Published ${gbData.publishedDate}${publisher}`;
+          const pub = gbData.publisher ? ' · ' + gbData.publisher : '';
+          document.getElementById('book-publishmeta').textContent = `Published ${gbData.publishedDate}${pub}`;
         }
 
-        // Description
-        if (gbData && gbData.description) {
-          descEl.textContent = gbData.description;
-        } else {
-          descEl.textContent = 'No description available. View on Goodreads for more details.';
-        }
+        const descEl = document.getElementById('book-description');
+        descEl.textContent = (gbData && gbData.description)
+          ? gbData.description
+          : 'No description available. View on Goodreads for more details.';
         descEl.classList.remove('loading');
       } else {
-        document.getElementById('book-description').textContent =
-          'No ISBN on file — view on Goodreads for details.';
+        document.getElementById('book-description').textContent = 'No ISBN on file — view on Goodreads for details.';
         document.getElementById('book-description').classList.remove('loading');
       }
     }
