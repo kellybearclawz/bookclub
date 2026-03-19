@@ -3,35 +3,46 @@ function getMeetingYear(dateString) {
   return date.getFullYear();
 }
 
-const coverCache = {};
 const FALLBACK = 'https://kellybearclawz.github.io/bookclub/default-cover.jpg';
 
-async function getGoogleBooksCover(isbn) {
-  if (!isbn) return null;
-  if (coverCache[isbn] !== undefined) return coverCache[isbn];
-  try {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
-    const data = await res.json();
-    if (data.items && data.items.length) {
-      const volumeId = data.items[0].id;
-      if (volumeId) {
-        // Build cover URL directly from volume ID — avoids http/https and edge=curl issues
-        const url = `https://books.google.com/books/content?id=${volumeId}&printsec=frontcover&img=1&zoom=2&source=gbs_api`;
-        coverCache[isbn] = url;
-        return url;
+// Fetch covers for a batch of ISBNs in ONE request using Google Dynamic Links API
+// Returns a map of { isbn: thumbnailUrl }
+async function fetchCoversForISBNs(isbns) {
+  const unique = [...new Set(isbns.filter(Boolean))];
+  if (!unique.length) return {};
+  const bibkeys = unique.map(i => `ISBN:${i}`).join(',');
+  const url = `https://books.google.com/books?bibkeys=${encodeURIComponent(bibkeys)}&jscmd=viewapi&callback=__gbcb`;
+
+  return new Promise((resolve) => {
+    const result = {};
+    const timeout = setTimeout(() => resolve(result), 5000);
+
+    window.__gbcb = function(data) {
+      clearTimeout(timeout);
+      for (const key in data) {
+        const isbn = key.replace('ISBN:', '');
+        if (data[key].thumbnail_url) {
+          result[isbn] = data[key].thumbnail_url.replace('http://', 'https://');
+        }
       }
-    }
-  } catch {}
-  coverCache[isbn] = null;
-  return null;
+      delete window.__gbcb;
+      resolve(result);
+    };
+
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = () => { clearTimeout(timeout); resolve(result); };
+    document.head.appendChild(script);
+  });
 }
 
 async function renderBooks(data) {
   const shelf = document.getElementById('bookshelf');
 
+  // Group by year
   const booksByYear = {};
   for (const book of data) {
-    const year = getMeetingYear(book['Meeting Date']);
+    const year = new Date(book['Meeting Date']).getFullYear();
     if (!booksByYear[year]) booksByYear[year] = [];
     booksByYear[year].push(book);
   }
@@ -44,6 +55,11 @@ async function renderBooks(data) {
   yearLinksDiv.innerHTML = years.map(y => `<a href="#year-${y}">${y}</a>`).join('');
   shelf.appendChild(yearLinksDiv);
 
+  // Collect ALL ISBNs across all books and fetch covers in one batch
+  const allISBNs = data.map(b => b.ISBN?.replace(/[^0-9Xx]/g, '')).filter(Boolean);
+  const coverMap = await fetchCoversForISBNs(allISBNs);
+
+  // Render each year section
   for (const year of years) {
     const section = document.createElement('section');
     section.id = `year-${year}`;
@@ -54,15 +70,16 @@ async function renderBooks(data) {
 
     const booksInYear = [...booksByYear[year]].reverse();
 
-    const coverFetches = booksInYear.map((book, index) => {
+    booksInYear.forEach((book, index) => {
       const isbn = book.ISBN?.replace(/[^0-9Xx]/g, '');
+      const coverUrl = (isbn && coverMap[isbn]) ? coverMap[isbn] : FALLBACK;
 
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book-card fade-in';
-      bookDiv.style.animationDelay = `${index * 0.08}s`;
+      bookDiv.style.animationDelay = `${index * 0.06}s`;
 
       const img = document.createElement('img');
-      img.src = FALLBACK;
+      img.src = coverUrl;
       img.alt = `Cover of ${book.Title}`;
       img.onerror = () => { img.onerror = null; img.src = FALLBACK; };
 
@@ -77,10 +94,6 @@ async function renderBooks(data) {
       bookDiv.appendChild(img);
       bookDiv.appendChild(info);
       bookContainer.appendChild(bookDiv);
-
-      return isbn
-        ? getGoogleBooksCover(isbn).then(url => { if (url) img.src = url; })
-        : Promise.resolve();
     });
 
     section.appendChild(bookContainer);
@@ -91,7 +104,6 @@ async function renderBooks(data) {
     section.appendChild(backToTop);
 
     shelf.appendChild(section);
-    await Promise.all(coverFetches);
   }
 
   // Floating back-to-top button
