@@ -245,6 +245,45 @@
     });
 
     // ---------- ISBN lookup ----------
+    // Open Library's dedicated ISBN endpoint first (Google's "isbn:" search
+    // operator is notoriously unreliable and often returns nothing even for
+    // valid ISBNs) — Google Books is used only as a fallback.
+    async function lookupOpenLibrary(isbn){
+      const res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+      const json = await res.json();
+      const data = json['ISBN:' + isbn];
+      if(!data) return null;
+      return {
+        title: data.title || '',
+        authors: (data.authors || []).map(a => a.name).filter(Boolean).join(', '),
+        publishDate: data.publish_date || '',
+        subject: (data.subjects && data.subjects[0] && (data.subjects[0].name || data.subjects[0])) || ''
+      };
+    }
+    async function lookupGoogleBooks(isbn){
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+      const json = await res.json();
+      const info = json.items && json.items[0] && json.items[0].volumeInfo;
+      if(!info) return null;
+      return {
+        title: info.title || '',
+        authors: (info.authors || []).join(', '),
+        publishDate: info.publishedDate || '',
+        subject: (info.categories && info.categories[0]) || ''
+      };
+    }
+    // Loose date strings ("September 6, 2016", "2016", "6 Sep 2016") -> {iso, year}
+    function parseLooseDate(str){
+      if(!str) return { iso:'', year:'' };
+      const yearMatch = str.match(/\d{4}/);
+      const year = yearMatch ? yearMatch[0] : '';
+      const d = new Date(str);
+      if(!isNaN(d.getTime())){
+        return { iso: d.toISOString().slice(0,10), year: year || String(d.getFullYear()) };
+      }
+      return { iso: year ? year + '-01-01' : '', year };
+    }
+
     $('#lookup-btn').addEventListener('click', async function(){
       const isbn = $('#f-isbn').value.replace(/[^0-9Xx]/g,'');
       const msg = $('#lookup-msg');
@@ -252,33 +291,36 @@
       const btn = $('#lookup-btn');
       btn.disabled = true; btn.textContent = 'Looking up…';
       msg.classList.remove('error');
-      msg.textContent = 'Searching Google Books…';
+      msg.textContent = 'Searching Open Library…';
+      let info = null;
       try{
-        const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-        const json = await res.json();
-        const info = json.items && json.items[0] && json.items[0].volumeInfo;
-        if(!info){
-          msg.textContent = 'No match found — fill in details manually.';
-          msg.classList.add('error');
-        } else {
-          if(!$('#f-title').value) $('#f-title').value = info.title || '';
-          if(!$('#f-author').value) $('#f-author').value = (info.authors || []).join(', ');
-          if(info.publishedDate){
-            const iso = info.publishedDate.length === 4 ? info.publishedDate + '-01-01' : info.publishedDate;
-            if(!$('#f-published').value) $('#f-published').value = iso.length >= 10 ? iso.slice(0,10) : '';
-            if(!$('#f-year').value) $('#f-year').value = info.publishedDate.slice(0,4);
-          }
-          if(!$('#f-genre').value && info.categories && info.categories[0]) $('#f-genre').value = info.categories[0];
-          msg.textContent = `Found "${info.title}" — check the fields below.`;
-        }
-        $('#f-goodreads').value = `https://www.goodreads.com/book/isbn/${isbn}`;
-      }catch(e){
-        msg.textContent = 'Lookup failed — fill in details manually.';
-        msg.classList.add('error');
-        $('#f-goodreads').value = `https://www.goodreads.com/book/isbn/${isbn}`;
-      }finally{
-        btn.disabled = false; btn.textContent = 'Look up';
+        info = await lookupOpenLibrary(isbn);
+      }catch(e){ /* fall through to Google Books */ }
+
+      if(!info){
+        msg.textContent = 'Trying Google Books…';
+        try{
+          info = await lookupGoogleBooks(isbn);
+        }catch(e){ /* fall through to "no match" */ }
       }
+
+      $('#f-goodreads').value = `https://www.goodreads.com/book/isbn/${isbn}`;
+
+      if(!info){
+        msg.textContent = 'No match found in Open Library or Google Books — fill in details manually.';
+        msg.classList.add('error');
+      } else {
+        if(!$('#f-title').value) $('#f-title').value = info.title;
+        if(!$('#f-author').value) $('#f-author').value = info.authors;
+        if(info.publishDate){
+          const { iso, year } = parseLooseDate(info.publishDate);
+          if(!$('#f-published').value && iso) $('#f-published').value = iso;
+          if(!$('#f-year').value && year) $('#f-year').value = year;
+        }
+        if(!$('#f-genre').value && info.subject) $('#f-genre').value = info.subject;
+        msg.textContent = `Found "${info.title}" — check the fields below.`;
+      }
+      btn.disabled = false; btn.textContent = 'Look up';
     });
     $('#f-published').addEventListener('change', function(){
       if(this.value && !$('#f-year').value) $('#f-year').value = this.value.slice(0,4);
