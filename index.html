@@ -80,7 +80,7 @@
       return result;
     }
 
-    // Cover via Google Dynamic Links
+    // Cover via Google Dynamic Links (unchanged — this one's reliable)
     function fetchCoverByISBN(isbn) {
       return new Promise(function(resolve) {
         var cbName = '__gbcb_' + Date.now();
@@ -101,15 +101,60 @@
       });
     }
 
-    // Description via Google Books REST API
-    function fetchBookInfo(isbn) {
-      return fetch('https://www.googleapis.com/books/v1/volumes?q=isbn:' + isbn + '&maxResults=1')
+    // ─── Book info / description lookup ────────────────────────────────────
+    // Google's "isbn:" search operator is unreliable and often returns
+    // nothing for valid ISBNs. Chain of fallbacks, in order of reliability:
+    //   1. Google Books, searched by ISBN
+    //   2. Google Books, searched by title + author (much more reliable)
+    //   3. Open Library's work-level description
+    //   4. Give up gracefully
+
+    function googleBooksSearch(query) {
+      return fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(query) + '&maxResults=1')
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          if (data.items && data.items.length) return data.items[0].volumeInfo || null;
-          return null;
+          return (data.items && data.items.length) ? data.items[0].volumeInfo : null;
         })
         .catch(function() { return null; });
+    }
+
+    function extractDescription(vol) {
+      return (vol && typeof vol.description === 'string' && vol.description.trim()) ? vol.description : null;
+    }
+
+    function openLibraryDescription(isbn) {
+      return fetch('https://openlibrary.org/isbn/' + isbn + '.json')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(edition) {
+          var workKey = edition && edition.works && edition.works[0] && edition.works[0].key;
+          if (!workKey) return null;
+          return fetch('https://openlibrary.org' + workKey + '.json').then(function(r) { return r.ok ? r.json() : null; });
+        })
+        .then(function(work) {
+          if (!work || !work.description) return null;
+          return typeof work.description === 'string' ? work.description : (work.description.value || null);
+        })
+        .catch(function() { return null; });
+    }
+
+    async function fetchBookInfo(isbn, title, author) {
+      var vol = isbn ? await googleBooksSearch('isbn:' + isbn) : null;
+      var description = extractDescription(vol);
+
+      if (!description && title) {
+        var query = 'intitle:' + title + (author ? ' inauthor:' + author : '');
+        var vol2 = await googleBooksSearch(query);
+        if (vol2) {
+          if (!vol) vol = vol2; // also use for cover/publish-date fallback below
+          description = extractDescription(vol2) || description;
+        }
+      }
+
+      if (!description && isbn) {
+        description = await openLibraryDescription(isbn);
+      }
+
+      return { vol: vol, description: description };
     }
 
     async function init() {
@@ -153,34 +198,31 @@
 
       document.getElementById('goodreads-link').href = goodreadsUrl;
 
-      if (isbn) {
-        // Fetch cover and description in parallel
-        var results = await Promise.all([fetchCoverByISBN(isbn), fetchBookInfo(isbn)]);
-        var coverUrl = results[0];
-        var gbData   = results[1];
+      // Fetch cover + book info (title/author used as fallback search terms)
+      var results = await Promise.all([
+        isbn ? fetchCoverByISBN(isbn) : Promise.resolve(null),
+        fetchBookInfo(isbn, title, author)
+      ]);
+      var coverUrl = results[0];
+      var info     = results[1];
+      var gbData   = info.vol;
 
-        var coverEl = document.getElementById('book-cover');
-        if (coverUrl) {
-          coverEl.src = coverUrl;
-        } else if (gbData && gbData.imageLinks) {
-          coverEl.src = (gbData.imageLinks.thumbnail || gbData.imageLinks.smallThumbnail || '').replace('http://', 'https://');
-        }
-        coverEl.alt = title;
-
-        if (gbData && gbData.publishedDate) {
-          var pub = gbData.publisher ? ' · ' + gbData.publisher : '';
-          document.getElementById('book-publishmeta').textContent = 'Published ' + gbData.publishedDate + pub;
-        }
-
-        var descEl = document.getElementById('book-description');
-        descEl.textContent = (gbData && gbData.description)
-          ? gbData.description
-          : 'No description available. View on Goodreads for more details.';
-        descEl.classList.remove('loading');
-      } else {
-        document.getElementById('book-description').textContent = 'No ISBN on file.';
-        document.getElementById('book-description').classList.remove('loading');
+      var coverEl = document.getElementById('book-cover');
+      if (coverUrl) {
+        coverEl.src = coverUrl;
+      } else if (gbData && gbData.imageLinks) {
+        coverEl.src = (gbData.imageLinks.thumbnail || gbData.imageLinks.smallThumbnail || '').replace('http://', 'https://');
       }
+      coverEl.alt = title;
+
+      if (gbData && gbData.publishedDate) {
+        var pub = gbData.publisher ? ' · ' + gbData.publisher : '';
+        document.getElementById('book-publishmeta').textContent = 'Published ' + gbData.publishedDate + pub;
+      }
+
+      var descEl = document.getElementById('book-description');
+      descEl.textContent = info.description || 'No description available. View on Goodreads for more details.';
+      descEl.classList.remove('loading');
     }
 
     init();
