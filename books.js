@@ -145,7 +145,9 @@ async function renderBooks(data) {
 // ─── Entry point ─────────────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', function() {
-  Papa.parse('Book Club - Books Read_ISBN.csv', {
+  // cache-bust so new/edited entries show up immediately instead of
+  // waiting out the browser's or GitHub Pages' cache
+  Papa.parse('Book Club - Books Read_ISBN.csv?cachebust=' + Date.now(), {
     download: true,
     header: true,
     complete: function(results) {

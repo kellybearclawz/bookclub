@@ -46,8 +46,8 @@
   <script>
     // ─── ONLY EDIT THIS SECTION EACH MONTH ──────────────────
     var NEXT_MEETING = {
-      date:     'September 16, 2026',
-      host:     'Kelly',
+      date:     'August 19, 2026',
+      host:     'Chris',
       location: "TBD"
     };
     // ─────────────────────────────────────────────────────────
@@ -165,7 +165,10 @@
       // Load CSV
       var text, rows, book;
       try {
-        var res = await fetch(CSV_URL);
+        // cache-bust: raw.githubusercontent.com caches for ~5 min, and so
+        // does the browser — without this, edits can take a few minutes
+        // to show up here even though the CSV is already updated on GitHub.
+        var res = await fetch(CSV_URL + '?cachebust=' + Date.now());
         text = await res.text();
         rows = parseCSV(text);
         book = rows[rows.length - 1];
