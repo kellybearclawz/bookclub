@@ -1,5 +1,5 @@
 /* ============================================================
-   BOOK CLUB — Cozy Library Style
+   BOOK CLUB — Wes Anderson Palette
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Sans+3:wght@300;400;600&display=swap');
@@ -12,24 +12,24 @@
 }
 
 :root {
-  --parchment:   #fdf6ec;
-  --cream:       #fff9f3;
-  --warm-white:  #fffdf9;
-  --tan:         #f0e0cc;
-  --tan-dark:    #e0ccb4;
-  --brown-light: #c4a882;
-  --brown:       #8b6242;
-  --brown-dark:  #5e3d1e;
-  --ink:         #3a2a1a;
-  --ink-light:   #6b4f36;
-  --rose:        #c8736a;
-  --rose-light:  #e8a89f;
-  --sage:        #7a9e7e;
-  --gold:        #c89f3c;
+  --parchment:   #f2ecda;  /* sandy page background */
+  --cream:       #f8f2e2;
+  --warm-white:  #fffcf6;
+  --tan:         #e1e6d4;  /* soft sage tint — card accents, tag/section bg */
+  --tan-dark:    #bfcbae;  /* sage border */
+  --brown-light: #93a17f;  /* sage — footer text, subtle accents */
+  --brown:       #3e8c7c;  /* teal — hover states */
+  --brown-dark:  #33413f;  /* dark slate — nav/footer bg, headings */
+  --ink:         #2e3b39;  /* near-black slate — body text */
+  --ink-light:   #5b6b62;  /* muted slate-sage — secondary text */
+  --rose:        #c2532e;  /* rust/burnt orange — primary accent */
+  --rose-light:  #e3c77e;  /* mustard — tag pills */
+  --sage:        #93a17f;
+  --gold:        #d2ac47;  /* mustard/gold — border accents */
 
-  --shadow-sm:   0 1px 4px rgba(58,42,26,.10);
-  --shadow-md:   0 3px 12px rgba(58,42,26,.13);
-  --shadow-lg:   0 6px 24px rgba(58,42,26,.16);
+  --shadow-sm:   0 1px 4px rgba(46,59,57,.12);
+  --shadow-md:   0 3px 12px rgba(46,59,57,.15);
+  --shadow-lg:   0 6px 24px rgba(46,59,57,.18);
 
   --radius-sm:   6px;
   --radius-md:   12px;
@@ -58,8 +58,8 @@ body {
       0deg,
       transparent,
       transparent 28px,
-      rgba(139,98,66,.025) 28px,
-      rgba(139,98,66,.025) 29px
+      rgba(46,59,57,.025) 28px,
+      rgba(46,59,57,.025) 29px
     );
 }
 
