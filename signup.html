@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex">
+  <title>2027 Host Sign-Up — Book Club</title>
+  <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    #schedule-list { display: flex; flex-direction: column; gap: .75rem; margin-top: 1.5rem; }
+
+    .slot-card {
+      background: var(--warm-white);
+      border: 1px solid var(--tan-dark);
+      border-left: 5px solid var(--tan-dark);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 1rem 1.25rem;
+    }
+    .slot-card.taken { border-left-color: var(--brown); }
+    .slot-card.open { border-left-color: var(--rose); }
+
+    .slot-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .slot-when { font-family: var(--font-serif); font-size: 1.05rem; color: var(--brown-dark); }
+    .slot-status { font-size: .9rem; color: var(--ink-light); margin-top: .15rem; }
+    .slot-status.open-label { color: var(--rose); font-weight: 600; }
+
+    .slot-btn {
+      font-family: var(--font-sans);
+      font-size: .85rem;
+      font-weight: 600;
+      padding: .45rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--tan-dark);
+      background: var(--tan);
+      color: var(--brown-dark);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .slot-btn:hover { background: var(--rose); color: #fff; border-color: var(--rose); }
+
+    .slot-form { display: none; margin-top: .9rem; padding-top: .9rem; border-top: 1px dashed var(--tan-dark); gap: .6rem; grid-template-columns: 1fr 1fr auto; align-items: end; }
+    .slot-form.show { display: grid; }
+    .slot-form label { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-light); margin-bottom: .25rem; }
+    .slot-form input, .slot-form select {
+      width: 100%; padding: .5rem .6rem; border-radius: 6px;
+      border: 1px solid var(--tan-dark); font: inherit; background: var(--cream); color: var(--ink);
+    }
+    .slot-msg { font-size: .8rem; margin-top: .4rem; min-height: 1.1em; }
+    .slot-msg.err { color: var(--rose); }
+    .slot-msg.ok { color: var(--brown); }
+
+    /* Password gate */
+    #gate {
+      max-width: 420px;
+      margin: 3rem auto;
+      background: var(--warm-white);
+      border: 1px solid var(--tan-dark);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 2rem;
+      text-align: center;
+    }
+    #gate .gate-icon { font-size: 2.2rem; margin-bottom: .5rem; }
+    #gate p { color: var(--ink-light); font-size: .9rem; margin-bottom: 1.1rem; }
+    #gate input {
+      width: 100%; padding: .6rem .8rem; border-radius: 8px;
+      border: 1px solid var(--tan-dark); font: inherit; background: var(--cream); color: var(--ink);
+      text-align: center; margin-bottom: .8rem;
+    }
+    #gate-msg { font-size: .8rem; color: var(--rose); min-height: 1.1em; margin-bottom: .6rem; }
+    #page-content { display: none; }
+
+    @media (max-width: 560px) {
+      .slot-form { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body id="top">
+
+  <nav>
+    <a href="index.html" class="nav-brand">📖 Book Club</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="books.html">Books</a>
+      <a href="stats.html">Stats</a>
+      <a href="add.html">Add a Book</a>
+      <a href="signup.html" class="active">2027 Sign-Up</a>
+    </div>
+  </nav>
+
+  <main>
+    <div id="gate">
+      <div class="gate-icon">🔖</div>
+      <h2>This page is bookmarked for members only</h2>
+      <p>Enter the club password to see and sign up for 2027 dates.</p>
+      <input type="password" id="gate-input" placeholder="Password" autocomplete="off">
+      <div id="gate-msg"></div>
+      <button class="slot-btn" id="gate-submit">Unlock</button>
+    </div>
+
+    <div id="page-content">
+      <h1>2027 Host Sign-Up</h1>
+      <p>Third Wednesday of every month. Pick a date, choose your name and where you're hosting — you can come back and change it any time.</p>
+      <div id="schedule-list">Loading…</div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2027 Book Club</p>
+  </footer>
+
+  <script>
+  (function(){
+    // ─── Fill this in after deploying the Worker ───────────────
+    var WORKER_URL = 'https://bookclub-add-book.YOUR-SUBDOMAIN.workers.dev';
+    // ─────────────────────────────────────────────────────────
+
+    // The page password IS the club secret sent to the Worker — one
+    // password to share, not two. Set CLUB_SECRET in Cloudflare to this
+    // exact value (case matters there, even though entry below is
+    // forgiving about case).
+    var PAGE_PASSWORD = 'NextChapter';
+
+    var MEMBERS = ['Anika','Carrie','Chris','Christine','Janet','Kelly','Kim','Laura','Linzi','Sara','Sarah','Shelly','Tesa'];
+
+    var SCHEDULE_CSV_URL = 'https://raw.githubusercontent.com/kellybearclawz/bookclub/main/2027-schedule.csv';
+
+    // ---------- password gate ----------
+    var LS_KEY = 'bookclub_signup_unlocked';
+    function unlock(){
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('page-content').style.display = 'block';
+      loadSchedule();
+    }
+    function tryPassword(val){
+      if (val.trim().toLowerCase() === PAGE_PASSWORD.toLowerCase()) {
+        localStorage.setItem(LS_KEY, '1');
+        unlock();
+      } else {
+        document.getElementById('gate-msg').textContent = 'Not quite — try again.';
+      }
+    }
+    document.getElementById('gate-submit').addEventListener('click', function(){
+      tryPassword(document.getElementById('gate-input').value);
+    });
+    document.getElementById('gate-input').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') tryPassword(this.value);
+    });
+    if (localStorage.getItem(LS_KEY) === '1') unlock();
+
+    // ---------- CSV parsing ----------
+    function parseCSV(text) {
+      var rows = [], row = [], field = '', inQuotes = false;
+      text = text.replace(/\r\n/g,'\n');
+      for (var i = 0; i < text.length; i++) {
+        var c = text[i];
+        if (inQuotes) {
+          if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQuotes = false; }
+          else field += c;
+        } else {
+          if (c === '"') inQuotes = true;
+          else if (c === ',') { row.push(field); field = ''; }
+          else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+          else field += c;
+        }
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows.filter(function(r){ return r.some(function(f){ return f.trim() !== ''; }); });
+    }
+
+    function escapeHTML(str){
+      var d = document.createElement('div');
+      d.textContent = str || '';
+      return d.innerHTML;
+    }
+
+    function memberOptions(selected){
+      var html = '<option value="" disabled' + (selected ? '' : ' selected') + '>Choose your name…</option>';
+      MEMBERS.forEach(function(name){
+        html += '<option value="' + escapeHTML(name) + '"' + (name === selected ? ' selected' : '') + '>' + escapeHTML(name) + '</option>';
+      });
+      return html;
+    }
+
+    var slots = [];
+
+    async function loadSchedule(){
+      var list = document.getElementById('schedule-list');
+      try{
+        var res = await fetch(SCHEDULE_CSV_URL + '?cachebust=' + Date.now());
+        var text = await res.text();
+        var rows = parseCSV(text);
+        var header = rows[0];
+        var mCol = header.indexOf('Month'), dCol = header.indexOf('Meeting Date'),
+            hCol = header.indexOf('Host'), lCol = header.indexOf('Location');
+        slots = rows.slice(1).map(function(r){
+          return { month: r[mCol], date: r[dCol], host: r[hCol] || '', location: r[lCol] || '' };
+        });
+        render();
+      }catch(e){
+        list.textContent = 'Could not load the schedule right now.';
+      }
+    }
+
+    function render(){
+      var list = document.getElementById('schedule-list');
+      list.innerHTML = '';
+      slots.forEach(function(slot, idx){
+        var taken = !!slot.host;
+        var card = document.createElement('div');
+        card.className = 'slot-card ' + (taken ? 'taken' : 'open');
+        card.innerHTML =
+          '<div class="slot-row">' +
+            '<div>' +
+              '<div class="slot-when">' + escapeHTML(slot.month) + ' &middot; ' + escapeHTML(slot.date) + '</div>' +
+              '<div class="slot-status ' + (taken ? '' : 'open-label') + '">' +
+                (taken ? ('Hosted by <strong>' + escapeHTML(slot.host) + '</strong>' + (slot.location ? ' &middot; ' + escapeHTML(slot.location) : '')) : 'Open') +
+              '</div>' +
+            '</div>' +
+            '<button class="slot-btn" data-idx="' + idx + '">' + (taken ? 'Edit' : 'Sign up') + '</button>' +
+          '</div>' +
+          '<div class="slot-form" id="form-' + idx + '">' +
+            '<div><label>Name</label><select class="f-host">' + memberOptions(slot.host) + '</select></div>' +
+            '<div><label>Location</label><input type="text" class="f-location" value="' + escapeHTML(slot.location) + '" placeholder="e.g. Carrie\'s house"></div>' +
+            '<button class="slot-btn f-save">Save</button>' +
+          '</div>' +
+          '<div class="slot-msg" id="msg-' + idx + '"></div>';
+        list.appendChild(card);
+      });
+
+      list.querySelectorAll('.slot-btn[data-idx]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var idx = this.dataset.idx;
+          var form = document.getElementById('form-' + idx);
+          form.classList.toggle('show');
+        });
+      });
+
+      list.querySelectorAll('.slot-form').forEach(function(form, idx){
+        form.querySelector('.f-save').addEventListener('click', async function(){
+          var host = form.querySelector('.f-host').value;
+          var location = form.querySelector('.f-location').value.trim();
+          var msg = document.getElementById('msg-' + idx);
+          if(!host){ msg.className = 'slot-msg err'; msg.textContent = 'Choose a name first.'; return; }
+
+          var btn = this;
+          btn.disabled = true; btn.textContent = 'Saving…';
+          try{
+            var res = await fetch(WORKER_URL + '/schedule', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-club-secret': PAGE_PASSWORD },
+              body: JSON.stringify({ meetingDate: slots[idx].date, host: host, location: location })
+            });
+            var json = await res.json();
+            if(!res.ok || !json.ok) throw new Error(json.error || ('Request failed (' + res.status + ')'));
+            msg.className = 'slot-msg ok';
+            msg.textContent = 'Saved!';
+            slots[idx].host = host;
+            slots[idx].location = location;
+            setTimeout(render, 700);
+          }catch(err){
+            msg.className = 'slot-msg err';
+            msg.textContent = 'Could not save: ' + err.message;
+          }finally{
+            btn.disabled = false; btn.textContent = 'Save';
+          }
+        });
+      });
+    }
+  })();
+  </script>
+</body>
+</html>
