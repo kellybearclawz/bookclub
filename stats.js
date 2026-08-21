@@ -7,11 +7,45 @@ function stringToCozyColor(str) {
   return `hsl(${hue}, 55%, 68%)`;
 }
 
+// Consolidates the 18 raw Sub-Genre values down to 8 broader categories for
+// a cleaner chart. Anything not listed here falls back to its raw value,
+// so a brand-new sub-genre added later still shows up rather than vanishing.
+const SUBGENRE_MAP = {
+  'Historical Fiction': 'Historical Fiction',
+
+  'Mystery': 'Mystery & Thriller',
+  'Thriller': 'Mystery & Thriller',
+  'Psychological Fiction': 'Mystery & Thriller',
+  'Horror': 'Mystery & Thriller',
+
+  'Contemporary Fiction': 'Contemporary & Literary Fiction',
+  'Literary Fiction': 'Contemporary & Literary Fiction',
+  'Domestic Fiction': 'Contemporary & Literary Fiction',
+  'Political Fiction': 'Contemporary & Literary Fiction',
+  'Book Club': 'Contemporary & Literary Fiction',
+
+  'Romance': 'Romance',
+
+  'Fantasy': 'Fantasy & Sci-Fi',
+  'Science Fiction': 'Fantasy & Sci-Fi',
+  'Mythology': 'Fantasy & Sci-Fi',
+
+  'True Crime': 'True Crime',
+  'Classic': 'Classic',
+
+  'Biography': 'Biography & Memoir',
+  'Historical Memoir': 'Biography & Memoir',
+};
+
+function consolidatedGenre(rawValue) {
+  return SUBGENRE_MAP[rawValue] || rawValue || 'Unknown';
+}
+
 function generateChart(data, label, title, elementId) {
   const ctx = document.getElementById(elementId).getContext('2d');
   const counts = {};
   data.forEach(book => {
-    const value = book[label] || 'Unknown';
+    const value = consolidatedGenre(book[label]);
     counts[value] = (counts[value] || 0) + 1;
   });
 
@@ -51,6 +85,16 @@ function generateChart(data, label, title, elementId) {
             displayBooks(legendItem.text);
           }
         }
+      },
+      // Clicking a slice does the same thing clicking its legend entry does.
+      onClick: function(evt, elements, chart) {
+        if (elements.length) {
+          const idx = elements[0].index;
+          displayBooks(chart.data.labels[idx]);
+        }
+      },
+      onHover: function(evt, elements) {
+        evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
       },
       responsive: true,
       maintainAspectRatio: false,
@@ -97,7 +141,8 @@ async function displayBooks(genre) {
       const booksContainer = document.getElementById('books-container');
       booksContainer.innerHTML = '';
 
-      const filteredBooks = results.data.filter(book => book['Sub-Genre'] === genre);
+      // Filter by the SAME consolidated grouping the chart uses, not raw Sub-Genre
+      const filteredBooks = results.data.filter(book => consolidatedGenre(book['Sub-Genre']) === genre);
 
       const subHeader = document.createElement('h2');
       subHeader.className = 'sub-header';
