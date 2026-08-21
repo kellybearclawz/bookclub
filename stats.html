@@ -3,38 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex">
   <title>Stats — Book Club</title>
-  <link rel="icon" type="image/x-icon" href="/bookclub/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
   <nav>
     <a href="index.html" class="nav-brand">📖 Book Club</a>
     <div class="nav-links">
       <a href="index.html">Home</a>
       <a href="books.html">Books</a>
       <a href="stats.html" class="active">Stats</a>
+      <a href="add.html">Add a Book</a>
+      <a href="signup.html">2027 Sign-Up</a>
     </div>
   </nav>
-
   <main>
     <h1>Sub-Genre Breakdown</h1>
     <div class="chart-container">
       <canvas id="subgenreChart"></canvas>
     </div>
-
     <h1>Book Breakdown</h1>
     <p style="text-align:center; color: var(--ink-light); font-style: italic; margin-bottom: 1rem;">
-      Click a slice in the chart above to see books by sub-genre.
+      Click a slice above, or a genre in the legend, to see those books.
     </p>
     <div id="books-container"></div>
   </main>
-
   <footer>
     <p>&copy; 2026 Book Club</p>
   </footer>
-
   <!-- Scripts at bottom so DOM and canvas are ready before JS runs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
