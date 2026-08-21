@@ -225,7 +225,10 @@
           '<div class="slot-form" id="form-' + idx + '">' +
             '<div><label>Name</label><select class="f-host">' + memberOptions(slot.host) + '</select></div>' +
             '<div><label>Location</label><input type="text" class="f-location" value="' + escapeHTML(slot.location) + '" placeholder="e.g. Carrie\'s house"></div>' +
-            '<button class="slot-btn f-save">Save</button>' +
+            '<div style="display:flex; gap:.5rem;">' +
+              '<button class="slot-btn f-save">Save</button>' +
+              (taken ? '<button class="slot-btn f-remove" style="border-color:var(--rose); color:var(--rose);">Remove</button>' : '') +
+            '</div>' +
           '</div>' +
           '<div class="slot-msg" id="msg-' + idx + '"></div>';
         list.appendChild(card);
@@ -268,6 +271,36 @@
             btn.disabled = false; btn.textContent = 'Save';
           }
         });
+
+        var removeBtn = form.querySelector('.f-remove');
+        if (removeBtn) {
+          removeBtn.addEventListener('click', async function(){
+            var msg = document.getElementById('msg-' + idx);
+            if (!confirm('Remove ' + (slots[idx].host || 'this') + ' from ' + slots[idx].month + '?')) return;
+
+            var btn = this;
+            btn.disabled = true; btn.textContent = 'Removing…';
+            try{
+              var res = await fetch(WORKER_URL + '/schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-club-secret': PAGE_PASSWORD },
+                body: JSON.stringify({ meetingDate: slots[idx].date, host: '', location: '' })
+              });
+              var json = await res.json();
+              if(!res.ok || !json.ok) throw new Error(json.error || ('Request failed (' + res.status + ')'));
+              msg.className = 'slot-msg ok';
+              msg.textContent = 'Removed!';
+              slots[idx].host = '';
+              slots[idx].location = '';
+              setTimeout(render, 700);
+            }catch(err){
+              msg.className = 'slot-msg err';
+              msg.textContent = 'Could not remove: ' + err.message;
+            }finally{
+              btn.disabled = false; btn.textContent = 'Remove';
+            }
+          });
+        }
       });
     }
   })();

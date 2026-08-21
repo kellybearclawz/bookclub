@@ -159,8 +159,8 @@ async function handleSchedule(request, env, origin) {
   try { payload = await request.json(); } catch (e) { return jsonResponse({ ok: false, error: 'Bad JSON' }, 400, origin); }
 
   const { meetingDate, host, location } = payload;
-  if (!meetingDate || !host) {
-    return jsonResponse({ ok: false, error: 'Meeting date and host are required' }, 400, origin);
+  if (!meetingDate) {
+    return jsonResponse({ ok: false, error: 'Meeting date is required' }, 400, origin);
   }
 
   const path = env.SCHEDULE_FILE_PATH || DEFAULTS.SCHEDULE_FILE_PATH;
@@ -186,12 +186,15 @@ async function handleSchedule(request, env, origin) {
       return jsonResponse({ ok: false, error: `No schedule row found for ${meetingDate}` }, 404, origin);
     }
 
-    rows[rowIndex][hostCol] = host;
+    rows[rowIndex][hostCol] = host || '';
     if (locCol > -1) rows[rowIndex][locCol] = location || '';
 
     const newText = rowsToCSV(rows);
+    const commitMessage = host
+      ? `Schedule: ${host} signed up for ${meetingDate}`
+      : `Schedule: cleared signup for ${meetingDate}`;
     const putRes = await githubPut(env, path, {
-      message: `Schedule: ${host} signed up for ${meetingDate}`,
+      message: commitMessage,
       content: utf8ToB64(newText),
       sha: fileData.sha,
       branch,
