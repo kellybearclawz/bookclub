@@ -434,17 +434,55 @@ canvas {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--tan);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: .4rem .5rem;
+  border-radius: var(--radius-sm);
+}
+.nav-toggle:hover { background: rgba(255,255,255,.12); }
+
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 700px) {
   :root { --nav-height: 56px; }
 
-  nav { padding: 0 1rem; }
+  nav { padding: 0 1rem; position: relative; }
 
   .nav-brand { font-size: 1.05rem; }
 
+  .nav-toggle { display: block; }
+
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--brown-dark);
+    border-bottom: 3px solid var(--gold);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .25s ease;
+  }
+  .nav-links.open {
+    max-height: 400px;
+  }
   .nav-links a {
-    font-size: .82rem;
-    padding: .35rem .6rem;
+    font-size: .95rem;
+    padding: .9rem 1.25rem;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .nav-links a:hover,
+  .nav-links a.active {
+    background: rgba(255,255,255,.08);
   }
 
   main { padding: 1.25rem 1rem 2.5rem; }
