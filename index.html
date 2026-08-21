@@ -112,12 +112,20 @@
     //   4. Give up gracefully
 
     function googleBooksSearch(query) {
+      console.log('[book-info] Google Books query:', query);
       return fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(query) + '&maxResults=1')
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+          console.log('[book-info] Google Books HTTP status:', r.status);
+          return r.json();
+        })
         .then(function(data) {
+          console.log('[book-info] Google Books response:', data);
           return (data.items && data.items.length) ? data.items[0].volumeInfo : null;
         })
-        .catch(function() { return null; });
+        .catch(function(err) {
+          console.error('[book-info] Google Books fetch FAILED:', err);
+          return null;
+        });
     }
 
     function extractDescription(vol) {
@@ -125,23 +133,33 @@
     }
 
     function openLibraryDescription(isbn) {
+      console.log('[book-info] Open Library lookup for ISBN:', isbn);
       return fetch('https://openlibrary.org/isbn/' + isbn + '.json')
-        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(r) {
+          console.log('[book-info] Open Library edition HTTP status:', r.status);
+          return r.ok ? r.json() : null;
+        })
         .then(function(edition) {
+          console.log('[book-info] Open Library edition:', edition);
           var workKey = edition && edition.works && edition.works[0] && edition.works[0].key;
-          if (!workKey) return null;
+          if (!workKey) { console.log('[book-info] No work key found on edition'); return null; }
           return fetch('https://openlibrary.org' + workKey + '.json').then(function(r) { return r.ok ? r.json() : null; });
         })
         .then(function(work) {
+          console.log('[book-info] Open Library work:', work);
           if (!work || !work.description) return null;
           return typeof work.description === 'string' ? work.description : (work.description.value || null);
         })
-        .catch(function() { return null; });
+        .catch(function(err) {
+          console.error('[book-info] Open Library fetch FAILED:', err);
+          return null;
+        });
     }
 
     async function fetchBookInfo(isbn, title, author) {
       var vol = isbn ? await googleBooksSearch('isbn:' + isbn) : null;
       var description = extractDescription(vol);
+      console.log('[book-info] After ISBN search — description found?', !!description);
 
       if (!description && title) {
         var query = 'intitle:' + title + (author ? ' inauthor:' + author : '');
@@ -150,12 +168,15 @@
           if (!vol) vol = vol2; // also use for cover/publish-date fallback below
           description = extractDescription(vol2) || description;
         }
+        console.log('[book-info] After title+author search — description found?', !!description);
       }
 
       if (!description && isbn) {
         description = await openLibraryDescription(isbn);
+        console.log('[book-info] After Open Library — description found?', !!description);
       }
 
+      console.log('[book-info] FINAL description:', description ? description.slice(0, 120) + '…' : null);
       return { vol: vol, description: description };
     }
 
@@ -175,6 +196,7 @@
         rows = parseCSV(text);
         book = rows[rows.length - 1];
       } catch(e) {
+        console.error('[book-info] CSV load FAILED:', e);
         document.getElementById('meeting-book').textContent = 'Could not load book data.';
         return;
       }
@@ -185,6 +207,7 @@
       var genre        = book['Genre'] || '';
       var subgenre     = book['Sub-Genre'] || '';
       var goodreadsUrl = book['Goodreads URL'] || ('https://www.goodreads.com/book/isbn/' + isbn);
+      console.log('[book-info] Current book from CSV:', { isbn: isbn, title: title, author: author });
 
       document.getElementById('meeting-book').innerHTML = 'Current Book: <em>' + title + '</em> by ' + author;
       document.getElementById('meeting-book').classList.remove('loading');
