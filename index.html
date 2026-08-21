@@ -111,9 +111,35 @@
     //   3. Open Library's work-level description
     //   4. Give up gracefully
 
+    // Optional: get a free API key at console.cloud.google.com (enable the
+    // "Books API", create a key, restrict it to that API + your domain).
+    // The keyless tier has a very low rate limit — this is what tripped the
+    // 429 you saw. Leave blank to keep using the keyless tier.
+    var GOOGLE_BOOKS_API_KEY = '';
+
+    // Cache book info per ISBN so repeat visits (and page reloads while
+    // testing) don't re-hit the APIs at all for books already looked up.
+    var CACHE_DAYS = 30;
+    function cacheGet(isbn) {
+      try {
+        var raw = localStorage.getItem('bookinfo:' + isbn);
+        if (!raw) return null;
+        var cached = JSON.parse(raw);
+        if (Date.now() - cached.ts > CACHE_DAYS * 24 * 60 * 60 * 1000) return null;
+        console.log('[book-info] Using cached result for', isbn);
+        return cached.data;
+      } catch (e) { return null; }
+    }
+    function cacheSet(isbn, data) {
+      try { localStorage.setItem('bookinfo:' + isbn, JSON.stringify({ ts: Date.now(), data: data })); }
+      catch (e) { /* storage full or unavailable — fine to skip caching */ }
+    }
+
     function googleBooksSearch(query) {
       console.log('[book-info] Google Books query:', query);
-      return fetch('https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(query) + '&maxResults=1')
+      var url = 'https://www.googleapis.com/books/v1/volumes?q=' + encodeURIComponent(query) + '&maxResults=1';
+      if (GOOGLE_BOOKS_API_KEY) url += '&key=' + GOOGLE_BOOKS_API_KEY;
+      return fetch(url)
         .then(function(r) {
           console.log('[book-info] Google Books HTTP status:', r.status);
           return r.json();
@@ -157,6 +183,11 @@
     }
 
     async function fetchBookInfo(isbn, title, author) {
+      if (isbn) {
+        var cached = cacheGet(isbn);
+        if (cached) return cached;
+      }
+
       var vol = isbn ? await googleBooksSearch('isbn:' + isbn) : null;
       var description = extractDescription(vol);
       console.log('[book-info] After ISBN search — description found?', !!description);
@@ -177,7 +208,9 @@
       }
 
       console.log('[book-info] FINAL description:', description ? description.slice(0, 120) + '…' : null);
-      return { vol: vol, description: description };
+      var result = { vol: vol, description: description };
+      if (isbn && description) cacheSet(isbn, result); // only cache real hits, not misses
+      return result;
     }
 
     async function init() {
