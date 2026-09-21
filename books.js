@@ -62,7 +62,9 @@ function descCacheGet(isbn) {
     if (!raw) return null;
     var cached = JSON.parse(raw);
     if (Date.now() - cached.ts > CACHE_DAYS * 24 * 60 * 60 * 1000) return null;
-    return cached.data;
+    var d = cached.data;
+    if (d && typeof d === 'object') d = d.description; // index.html stores {vol, description}
+    return (typeof d === 'string' && d) ? d : null;
   } catch (e) { return null; }
 }
 function descCacheSet(isbn, data) {
