@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex">
+  <title>Guidelines — Book Club</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .rules-intro {
+      text-align: center;
+      color: var(--ink-light);
+      font-style: italic;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+
+    .rules {
+      list-style: none;
+      counter-reset: rule;
+      display: grid;
+      gap: .85rem;
+    }
+
+    .rules li {
+      counter-increment: rule;
+      position: relative;
+      background: var(--warm-white);
+      border: 1px solid var(--tan-dark);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 1rem 1.25rem 1rem 4rem;
+      transition: box-shadow .2s, transform .2s;
+    }
+
+    .rules li:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .rules li::before {
+      content: counter(rule);
+      position: absolute;
+      left: 1.1rem;
+      top: 1rem;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: var(--rose);
+      color: #fff;
+      font-family: var(--font-serif);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .rules strong {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      color: var(--brown-dark);
+      display: block;
+      margin-bottom: .15rem;
+    }
+
+    .rules p {
+      margin: 0;
+      color: var(--ink-light);
+      font-size: .95rem;
+    }
+
+    /* Keep numbering running across sections (1, 2, 3… not restarting) */
+    main { counter-reset: rule; }
+    .rules { counter-reset: none; }
+
+    @media (max-width: 700px) {
+      .rules li { padding: .9rem 1rem .9rem 3.5rem; }
+      .rules li::before { left: .85rem; width: 1.75rem; height: 1.75rem; font-size: .9rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html" class="nav-brand">📖 Book Club</a>
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="books.html">Books</a>
+      <a href="stats.html">Stats</a>
+      <a href="rules.html" class="active">Guidelines</a>
+      <a href="add.html">Add a Book</a>
+      <a href="signup.html">2027 Sign-Up</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1 style="text-align:center;">Club Guidelines</h1>
+    <p class="rules-intro">How our little club runs — agreed on by all of us.</p>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         EDIT RULES BELOW
+         • Each rule is one <li>…</li> block — copy one to add a rule,
+           delete one to remove it. Numbers update automatically.
+         • The bold line is a short title; the <p> line is the full guideline.
+         ═══════════════════════════════════════════════════════════ -->
+
+    <section>
+      <ol class="rules">
+        <li>
+          <strong>Third Wednesday of the month</strong>
+          <p>Meetings will be held the third Wednesday of every month.</p>
+        </li>
+        <li>
+          <strong>7–9 pm</strong>
+          <p>We meet from 7 to 9 pm. Book discussion runs 7:30–8:30, with the time before and after for socializing.</p>
+        </li>
+        <li>
+          <strong>No meetings in December, June or July</strong>
+          <p>We may have a social evening in the summer just to relax.</p>
+        </li>
+        <li>
+          <strong>Any genre is welcome</strong>
+          <p>The type of books to be read is left open. No genre is excluded from being brought to the group for a vote.</p>
+        </li>
+        <li>
+          <strong>We rotate homes</strong>
+          <p>Meetings rotate among members’ homes. A local restaurant or other public setting is an option if weather or other circumstances prevent meeting at a home.</p>
+        </li>
+        <li>
+          <strong>Everyone hosts</strong>
+          <p>Each person signs up to host a meeting (see the <a href="signup.html">2027 Sign-Up</a> page). The host selects 3–5 books to present, and the group votes on them the month before that host’s meeting.</p>
+        </li>
+        <li>
+          <strong>Majority rules</strong>
+          <p>Majority vote prevails for all group decisions — for example, changes to the group format, membership issues and book selection.</p>
+        </li>
+        <li>
+          <strong>The host moderates</strong>
+          <p>The monthly host moderates the book discussion. Book guides are fine to use and are often available online.</p>
+        </li>
+        <li>
+          <strong>Drinks and snacks</strong>
+          <p>Alcohol and snacks are desired at each meeting.</p>
+        </li>
+        <li>
+          <strong>15 members max</strong>
+          <p>The group is limited to 15 members.</p>
+        </li>
+        <li>
+          <strong>Checking in</strong>
+          <p>If a member misses 3 meetings in a row, someone will reach out to see whether she’d like to continue.</p>
+        </li>
+        <li>
+          <strong>New members</strong>
+          <p>New members can join when an opening exists. This will be discussed at meetings or by email.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ═══════════════ END OF RULES ═══════════════ -->
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Book Club</p>
+  </footer>
+
+  <script src="nav.js" defer></script>
+</body>
+</html>
